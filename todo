@@ -1,0 +1,45 @@
+Instalacion de cosas:
+1)Create React App con PWA:
+    https://create-react-app.dev/docs/making-a-progressive-web-app/
+    npx create-react-app my-app --template cra-template-pwa
+
+2)FUSE(Busqueda difusa):
+     https://fusejs.io
+     npm install --save fuse.js
+
+3)ReactBDND(drag and drop):
+    https://github.com/atlassian/react-beautiful-dnd
+    npm install react-beautiful-dnd --save
+    Tutorial que vi y aplique: https://www.youtube.com/watch?v=y1w6C9A5a2A
+
+4)Long Touch:
+    https://github.com/john-doherty/long-press-event
+    Baje directamente el archivo: https://github.com/john-doherty/long-press-event/blob/master/dist/long-press-event.min.js
+    Y lo puse en una carpeta "libs" de public, y agregue <script src="libs/long-press-event.min.js"></script> al index.html.  Medio cabeza, a lo mejor hay una mejor manera de hacerlo.  
+
+5)ClipboardJS(el de copiar):
+    https://clipboardjs.com/
+    npm install clipboard --save 
+
+
+
+Refactoring:
+-Cambiar el modo de clipboard.js porque las "data-" atributos de HTML pueden tener limite en algunos browsers.
+-Ver si me combiene tener la clase "Data" con sus metedos ahi.
+-Evaluar como seria la mejor forma de representar los datos de las notas. (un arreglo? un hashmap? una hashtable?). Supongo que para hacerlo rapido me basta con un arreglo pocho y ineficiente.
+Para esto tendria que Evaluar cual seria el requerimiento que mas velocidad precise (quiza la busqueda de la nota en la estructura).
+-La busqueda con fuse, deberia tener un pequenio delay 100ms? (para no ejecutar al dope de mas)
+-Como hacer para que el campo de Search no te muestre las busquedas anteriores/deotro lado.
+
+Averiguar
+-Con el long press que tengo ahora abria que :
+    -registrar el ancestro que sea card-container, y no el elemento que longclickie posta.
+    +Evitar que un long-press sea tambien un click (con e.preventDefault() creo q va) DONE
+    -El listener esta puesto en el document, como hacer para que no todo sea longclickeable?
+
+
+Requerimientos / definiciones:
+-Con single click o single Tap, se copia la nota.
+-Con long tap se abre la nota para editarla. (VER como evitar que un long click/tap, tambien sea un single click/tap)
+-Para mover las notas? apretar un boton y que jiggleen?
+-Para eliminar/enviar a papelera? 

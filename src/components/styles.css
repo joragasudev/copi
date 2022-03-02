@@ -1,0 +1,50 @@
+:root{
+  --z-index-side-panel: 2;
+  --z-index-note-editor: 2;
+  --z-index-bottom-bar: 1;
+}
+
+.side-panel{
+    height: 100%;
+    width: 0px;
+    position: fixed;
+    z-index: var(--z-index-side-panel);
+    top: 0;
+    left: 0;
+    background-color: red;
+    overflow-x: hidden;
+    transition: 0.3s;
+  }
+.side-panel-show{
+  width: 100px;
+}
+.note-editor{
+  height: 100%;
+  width: 0px;
+  position: fixed;
+  z-index: var(--z-index-note-editor);
+  top: 0;
+  right: 0;
+  background-color: yellow;
+  overflow-x: hidden;
+  transition: 0.1s;
+}
+.note-editor-show{
+  width: 100%;
+}
+.bottom-bar{
+  background-color: orange;
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:var(--z-index-bottom-bar);
+  display:flex;	
+  height:50px;
+  box-shadow: 0 -2px 5px -2px #333;
+}
+
+.noteCard{
+  border: 1px solid mediumseagreen;
+  margin: 6px;
+}
