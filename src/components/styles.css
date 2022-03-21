@@ -2,6 +2,38 @@
   --z-index-side-panel: 2;
   --z-index-note-editor: 2;
   --z-index-bottom-bar: 1;
+  --z-index-tags-editor-container: 3;
+  --z-index-modal-background: 7000;
+  --z-index-modal: 7001;
+  /*Ver bien, porque el DnD tiene como 5000 de z-index, estos quiza deberian arrancar en 6000*/
+}
+
+.modal-background{
+  z-index: var(--z-index-modal-background);
+  background: rgba(10,10,10,0.6);
+  width: 100%;
+  height: 100%;
+  left:0;
+  top:0;
+  position:fixed;
+}
+.modal{
+  width: 300px;
+  height: 200px;
+  background-color: white;
+  z-index: var(--z-index-modal); 
+  position:fixed;
+}
+
+.tag-filter-container{
+  display: flex;
+}
+.tag-filter-input{
+  flex: 1 1 auto;
+  width: 40px;
+}
+.tag-filter-button{
+  flex: 0 0 auto;
 }
 
 .side-panel{
@@ -17,6 +49,20 @@
   }
 .side-panel-show{
   width: 100px;
+}
+.tags-editor-container{
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  z-index: var(--z-index-tags-editor-container);
+  top: 0;
+  right: 0;
+  background-color: orange;
+  overflow-x: hidden;
+  transition: 0.1s;
+}
+.tags-editor-container-show{
+  width: 100%;/*no lo estoy usando ahora...*/
 }
 .note-editor{
   height: 100%;

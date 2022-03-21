@@ -2,11 +2,11 @@ import { Context } from "./Copi";
 import { useContext } from "react";
 
 const BottomBar = ()=>{
-    const {toggleNoteEditor} = useContext(Context);
+    const {setNoteToEdit,toggleNoteEditor} = useContext(Context);
 
     return (
         <div className="bottom-bar"> 
-            <button onClick={()=>{toggleNoteEditor()}}>Panel nueva Nota</button>
+            <button onClick={()=>{setNoteToEdit(null);toggleNoteEditor()}}>Panel nueva Nota</button>
         </div>
     )
 }
