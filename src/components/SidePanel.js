@@ -1,44 +1,17 @@
 import { Context } from "./Copi";
 import { useContext,useState } from "react";
-import { NoteData } from "../data/Data";
-import Modal from "./Modal"
+import { AppData } from "../data/Data2";
 
-const TagListViejo=(props)=>{
-    console.log('Rendering TagList...');
-    const {clickTagHandler} = props;
-    const allTagsAvailable = NoteData.allTagsAvailable; //[{id:4, name:'Compras'}, ... ]
-    const [modal,setModal] = useState({show:false});
-    //acceptHandler,cancelHandler,modalText,classNames
-    const deleteTag = (tagId)=>{
-        console.log(`borraria el tag ${tagId}`);
-    }
-    console.log(modal.show);
-    return(
-        modal.show
-        ?<Modal acceptHandler={()=>{deleteTag(modal.tagId)}}
-                cancelHandler={()=>{setModal({show:false})}}
-                modalText={modal.text}
-                classNames=""  />
-        :allTagsAvailable.map((tag)=>{
-            return(
-                <div key={tag.id} className="tag-filter-container">
-                    <button onClick={()=>{ setModal({show:true,tagId:tag.id,text:`Borrar tag: ${tag.name} ?`})}} className="tag-filter-button">D</button>
-                    <input className="tag-filter-input" type="text" value={tag.name}></input>
-                    <button onClick={()=>{clickTagHandler(tag.id)}} className="tag-filter-button">V</button>
-                </div>
-            )}
-        )
-    );
-}
+
 const TagList=(props)=>{
     console.log('Rendering TagList...');
     const {clickTagHandler} = props;
-    const allTagsAvailable = NoteData.allTagsAvailable; //[{id:4, name:'Compras'}, ... ]
+    const allTags = AppData.allTagsCache; //[{key:1, name:'groceries'}, {key:2, name:'food'}] 
     return(
-        allTagsAvailable.map((tag)=>{
+        allTags.map((tag)=>{
             return(
-                <div key={tag.id} className="tag-filter-container">
-                    <p onClick={()=>{clickTagHandler(tag.id)}}>{tag.name}</p>
+                <div key={tag.key} className="tag-filter-container">
+                    <p onClick={()=>{clickTagHandler(tag.key)}}>{tag.name}</p>
                 </div>
             )}
         )
@@ -46,30 +19,25 @@ const TagList=(props)=>{
 }
 
 const SidePanel = ()=>{
-    const {isSidePanelVisible, toggleSidePanel,noteList,setNoteList,toggleTagsEditor} = useContext(Context);
+    const {view,setView,setNoteList} = useContext(Context);
 
-    const  clickTagHandler=(tagId)=>{
+    const  clickTagHandler=(tagKey)=>{
         //deberia borrar el search filter y filtrar allNotes
         //allTags seria [{id:4, name:'Compras'}, ... ]
         //y las notas [{id:55, tags:[1,4,6],... }, ...]
-        const noteList = NoteData.allNotes;
-        console.log(noteList);
-        const notesFilteredByTag = noteList.filter((note)=>{
-            return (note.noteTags.includes(tagId.toString()));//Ojo porahi tienen q ser ambas strings/numb
+        const notesFilteredByTag = AppData.allNotesCache.filter((note)=>{ //<-cambiar x AppData.getNotes()
+            return (note.noteTags.includes(tagKey));//Ojo porahi tienen q ser ambas strings/numb
         });
-        console.log(notesFilteredByTag);
         setNoteList(notesFilteredByTag);
     }
 
     return(
-        <div className={`side-panel ${isSidePanelVisible?'side-panel-show' : ''}`}
-            onClick={()=>{toggleSidePanel()}}
-        >
+        <div className={`side-panel ${(view==='sidePanel')?'side-panel-show' : ''}`}onClick={()=>{setView('default')}}>
             Side panel
-        <button onClick={(e)=>{toggleTagsEditor();e.stopPropagation();}}>Editar</button>
-        <button onClick={()=>{setNoteList(NoteData.allNotes)}}>Todas</button>
-        <TagList clickTagHandler={clickTagHandler}/>
-        
+            <button onClick={(e)=>{setView('tagsEditor');e.stopPropagation();}}>Editar</button>
+            <button onClick={()=>{setNoteList(AppData.allNotesCache);}}>Todas</button>{/*<-cambiar x AppData.getNotes()*/}
+            <button onClick={()=>{setNoteList(AppData.getDeletedNotes());}}>TrashCan</button>
+            <TagList clickTagHandler={clickTagHandler}/>
         </div>
     );
 }

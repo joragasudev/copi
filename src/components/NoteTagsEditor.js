@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState ,memo } from "react";
-import {NoteData} from "../data/Data";
+import {AppData} from "../data/Data2";
 
 
 
 const NoteTagsEditor = memo((props)=>{
     console.log('TagsEditor rendering...');
     const {note,saveNoteTagsHandler,showTagsEditorHandler} = props;
-    const [noteNewTags,setThisNoteTags] = useState(note? note.noteTags : []);//[1,2,55,74]
-    const [filteredTagsAvailable,setFilteredTagsAvailable] = useState(NoteData.allTagsAvailable);//[{id:74, tagName:'X'}]
+    const [thisNoteTags,setThisNoteTags] = useState(note? note.noteTags : []);//[1,2,55,74]
+    const [filteredTagsAvailable,setFilteredTagsAvailable] = useState(AppData.allTagsCache);//[{id:74, tagName:'X'}]
     
     //Esto evita que quede la info de otra nota abierta anteriormente. NO hace falta si TagsEditor se destruye cada vez q se cierra.
     // const noteTags = useMemo(()=> note? note.noteTags : [] ,[note]);
@@ -16,28 +16,28 @@ const NoteTagsEditor = memo((props)=>{
     // },[noteTags]);
 
     const filterChangeHandler = (term)=>{
-        if(term ==='')
-            return (setFilteredTagsAvailable(NoteData.allTagsAvailable));
+        if(term.trim() ==='')
+            return (setFilteredTagsAvailable(AppData.allTagsCache));
 
-        const newFilteredTags = NoteData.allTagsAvailable.filter((tag)=>{
+        const newFilteredTags = AppData.allTagsCache.filter((tag)=>{
             const termNormalized = term.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-            const tagNormalized = tag.name.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");//tag.tagName HHH
+            const tagNormalized = tag.name.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
             return (tagNormalized.startsWith(termNormalized));
         });
         return setFilteredTagsAvailable(newFilteredTags);
     }
 
     const checkBoxesHandleChange = (e)=>{
-        let tagId = e.target.value.toString();
+        let tagKey = parseInt(e.target.value);
         setThisNoteTags(//esto es un toggle
-            noteNewTags.includes(tagId) //Aca tiene que ser el id, y no su tagName HHH (e.target.value)
-             ? noteNewTags.filter(id => id !== tagId) //(i=>i.id !== e.target.value)
-             : [ ...noteNewTags, tagId ] //e.target.value
+            thisNoteTags.includes(tagKey) //Aca tiene que ser el id, y no su tagName HHH (e.target.value)
+             ? thisNoteTags.filter(id => id !== tagKey) //(i=>i.id !== e.target.value)
+             : [ ...thisNoteTags, tagKey ] //e.target.value
         );
     }
    
     const saveButtonHandler=()=>{
-        saveNoteTagsHandler([...noteNewTags]);
+        saveNoteTagsHandler([...thisNoteTags]);
     }
 
     return(
@@ -46,14 +46,14 @@ const NoteTagsEditor = memo((props)=>{
             <button onClick={()=>{saveButtonHandler(); showTagsEditorHandler(false);}}>Aceptar</button>
             <button onClick={()=>{showTagsEditorHandler(false)}}>Cancelar</button>
             {filteredTagsAvailable.map((tag)=>{ //HHH
-                return <CheckBoxTag key={tag.id} tagName={tag.name} tagId={tag.id} isChecked={noteNewTags.includes(tag.id.toString())} handleChange={checkBoxesHandleChange}/>
+                return <CheckBoxTag key={tag.key} tagName={tag.name} tagKey={tag.key} isChecked={thisNoteTags.includes(tag.key)} handleChange={checkBoxesHandleChange}/>
             })}
         </div>
     )
 })
 
 const CheckBoxTag = (props)=>{
-    const {tagName,tagId,isChecked,handleChange} = props;
+    const {tagName,tagKey,isChecked,handleChange} = props;
     return (
     <>
         <p>{tagName}</p>
@@ -61,7 +61,7 @@ const CheckBoxTag = (props)=>{
         name={tagName}
         onChange = {handleChange}
         checked={isChecked}
-        value={tagId}
+        value={tagKey}
         />
     </> 
     )
@@ -72,7 +72,7 @@ const TagFilter = (props)=>{
     const [term,setTerm] = useState('');
 
     const addTagHandler=(term)=>{
-        NoteData.addNewTag(term).then(()=>{
+        AppData.saveNewTag(term).then(()=>{
             filterChangeHandler(term);
         }
         );

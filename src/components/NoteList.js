@@ -3,29 +3,31 @@ import { memo, useContext, useState} from "react";
 import { DragDropContext } from "react-beautiful-dnd";
 import { Droppable } from "react-beautiful-dnd";
 import { Draggable } from "react-beautiful-dnd";
-import { NoteData } from "../data/Data";
+import { AppData } from "../data/Data2";
 import NoteEditor from './NoteEditor';
 //NoteList deberia ser el padre de una serie de Componentes Memoizados con memo (los de la lista).
 
 const NoteList = () =>{
-    const {noteList,setNoteList} = useContext(Context);
+    const {noteList,setNoteList,view} = useContext(Context);
+    console.log(view);
+    if (!noteList.length)
+        return (<div>No hay notas</div>);
 
     return(
         <DragDropContext onDragEnd={(dragEndObject)=>{ //DRAG HANDLER
             if (dragEndObject.destination != null){
-            const sourceIndex = dragEndObject.source.index;
-            const destinationIndex = dragEndObject.destination.index;
-            
-            setNoteList(NoteData.reorderNotes(sourceIndex,destinationIndex));
-            //viejo:
-            // NoteData.reorderNotes(sourceIndex,destinationIndex).then((orderedNotes)=>{
-            //     setNoteList(orderedNotes);
-            // });   
+            // const sourceIndex = dragEndObject.source.index;
+            // const destinationIndex = dragEndObject.destination.index;
+            // setNoteList(AppData.reorderNotes(sourceIndex,destinationIndex));
+            const sourceKey = noteList[dragEndObject.source.index].key;
+            const destinationKey = noteList[dragEndObject.destination.index].key;
+            setNoteList(AppData.reorderNotes(sourceKey,destinationKey));
         }}}>
             <Droppable droppableId='droppeable-1'>
             {(provided,snapshot)=> (
                 <div className='listContainer' ref={provided.innerRef} {...provided.droppableProps}>
-                    <MListContent noteList={noteList} isDragDisabled={false}/>
+                    <ListContent noteList={noteList} isDragDisabled={view!=='default'}/>
+                    {/* A lo mejor tendria que crear un flagsito o un objeto state, para saber en que lista estamos y deshabilitar el drag. */}
                     {provided.placeholder}
                 </div>
             )}
@@ -54,29 +56,29 @@ const NoteCard_ConNoteEditorProps = (props) =>{
 }
 const NoteCard = (props) =>{
     const {note} = props;
-    const {setNoteToEdit,toggleNoteEditor} = useContext(Context);
+    const {setNoteToEdit,setView} = useContext(Context);
     
     return(
     <div className="noteCard">
         <p>{note.title}</p>
         <p>{note.text}</p>
-        <button onClick={(e)=>{setNoteToEdit(note); toggleNoteEditor(true); e.stopPropagation();}}>E</button>
+        <button onClick={(e)=>{setNoteToEdit(note); setView('noteEditor'); e.stopPropagation();}}>E</button>
     </div>
     );
 }
-const ListContent = (props) => {
+const ListContent = memo((props) => {
     const {noteList,isDragDisabled} = props;
     
     const listContent =  noteList.map((note,index) => (
     <Draggable
-     key={note.id} 
-     draggableId={'draggableID-'+note.id} 
+     key={note.key} 
+     draggableId={'draggableID-'+note.key} 
      index={index}
      isDragDisabled={isDragDisabled}>
         {(provided,snapshot)=>(
             <div className='note-card-container'
-             id={'note-card-container'+note.id}
-             data-note-id={note.id}
+             id={'note-card-container'+note.key}
+             data-note-id={note.key}
              ref={provided.innerRef}
              {...provided.draggableProps}
              {...provided.dragHandleProps}
@@ -93,8 +95,8 @@ const ListContent = (props) => {
     //listContent.splice(0,0,<Separador key={9999} text="Pinned"/>);
     //listContent.splice(6,0,<Separador key={9998} text="Others"/>);
     return listContent;
-}
-const MListContent = memo(ListContent);
+})
+
 
 
 

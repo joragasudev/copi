@@ -3,6 +3,7 @@ import Fuse from 'fuse.js'
 /*
 You use IDBDatabase to start transactions, IDBTransaction to set the mode of the transaction (e.g. is it readonly or readwrite), and you access an IDBObjectStore to make a request.
 https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction
+//Si creo distintas transacciones, tipo : t1,t2,t3,t4, y las abro en ese orden,se van a ejecutar en ese orden.
 */
 
 //Clase DATA encargada de manejar la IndexedDB y mantener algunos datos relevantes...
@@ -174,7 +175,6 @@ class Data{
             }
         });
     }
-
     getAllTagsAvailable(){
         return new Promise((resolve,reject)=>{
             let transaction = this.connection.transaction([this.TAGS_OBJECTSTORE_NAME], "readonly");
@@ -202,6 +202,7 @@ class Data{
         })
         return filteredTags;
     }
+
 
     deleteTheseTags(deleteTheseTagsArray){
         //por por cada id de  deleteTheseTagsArray, mirar todas las notas y borrarle ese id de sus tags. Luego borrar ese tag de la tabla de tags.
@@ -322,6 +323,7 @@ class Data{
         });
     }
 
+
     saveNewNote(newNote) {
         return new Promise((resolve, reject) => {
             let transaction = this.connection.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME], "readwrite");
@@ -362,8 +364,6 @@ class Data{
             transaction.onerror = event => {console.log('ERROR: algo peto al guardar el dato!');};
         });
     }
-
-
     reorderNotes (sourceIndex,destinationIndex){
             const newOrderedNotes = [...this.orderArrayByIds( this.allNotes )];  
             newOrderedNotes.splice(destinationIndex,0,newOrderedNotes.splice(sourceIndex,1)[0]);
@@ -389,7 +389,6 @@ class Data{
             
             return ([...this.allNotes]);
     }
-
     reorderNotesViejo(sourceIndex,destinationIndex){
         return new Promise((resolve,reject)=>{
             const newOrderedNotes = [...this.orderArrayByIds( this.allNotes )];  
@@ -417,7 +416,7 @@ class Data{
     }
    searchNotes(term){
        //usa fuse a partir de this.allNotes, y retorna la mierda que devuelva fuse.
-       if (term==='')
+       if (term.trim()==='')
         return (this.getAllNotes());
        console.log(term);
        console.log(this.fuseOptions);
