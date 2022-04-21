@@ -6,7 +6,6 @@ import NoteTagsEditor from "./NoteTagsEditor";
 //if id===null -> es una nueva nota, sino es una edicion de nota.
 
 const TitleInput = memo((props)=>{
-    console.log('Title render.');
     const {initialValue,titleOnChangeHandler} = props;
     const [value,setValue] = useState(initialValue);
     const onChangeHandler = (value)=>{
@@ -21,7 +20,6 @@ const TitleInput = memo((props)=>{
 })
 
 const TextInput = memo((props)=>{
-    console.log('Text render.');
     const {initialValue,textOnChangeHandler} = props;
     const [value,setValue] = useState(initialValue);
     const onChangeHandler = (value)=>{
@@ -36,11 +34,9 @@ const TextInput = memo((props)=>{
     )
 })
 
-
-
 const NoteEditor = ()=>{
     console.log('Rendering Nuevo3v2 NoteEditor...');
-    const {noteToEdit,setNoteList,view,setView} = useContext(Context);
+    const {noteToEdit,setNoteList,appView,setAppView} = useContext(Context);
     const noteEditorRef = useRef(null);
     const [noteTags,setNoteTags] = useState(noteToEdit?noteToEdit.noteTags:[]);
     const [title,setTitle] = useState(noteToEdit? noteToEdit.title : 'title...');
@@ -48,29 +44,33 @@ const NoteEditor = ()=>{
     const [showTagEditor,setShowTagEditor] = useState(false);//Ver si esto no me combiene hacerlo simil al tagsEditor....???? quiza no
 
     return(
-        <div id="note-editor" ref={noteEditorRef} className={`note-editor ${(view==='noteEditor')? 'note-editor-show' : ''}`}>
+        <div id="note-editor" ref={noteEditorRef} className={`note-editor ${(appView.view==='noteEditor')? 'note-editor-show' : ''}`}>
             <button onClick={()=>{
                 noteEditorRef.current.classList.toggle('note-editor-show');
-                setView('default');
+                setAppView({view:'default'});
                 }} >Cerrar</button>
 
             <button onClick={()=>{
-                if(noteToEdit===null)
+                if(noteToEdit===null){
                     AppData.saveNewNote({title: title,
                                           text:text,
                                           noteTags:noteTags,})
                                       .then((r)=>{
-                                            setNoteList(AppData.allNotesCache);//<-cambiar x AppData.getNotes()
-                                        })
+                                            //setNoteList(AppData.allNotesCache);
+                                            setNoteList(AppData.getNotes());
+                                        });
+                    setAppView({view:'default'});
+                    }
                 else{
                     AppData.updateNote({title:title,
                             text:text,
                             key:noteToEdit.key,
                             noteTags:noteTags,})
                             .then((r)=>{
-                                setNoteList(AppData.allNotesCache);//<-cambiar x AppData.getNotes()
+                                //setNoteList(AppData.allNotesCache);
+                                setNoteList(AppData.getNotes());
                             });
-                    setView('default');
+                    setAppView({view:'default'});
                 }
                 }}>Guardar</button>
 
@@ -86,8 +86,8 @@ const NoteEditor = ()=>{
 }
 
 const NoteEditorContainer = () =>{
-    const {view} = useContext(Context);
-    return(<>{(view==='noteEditor')?<NoteEditor />:null}</>);
+    const {appView} = useContext(Context);
+    return(<>{(appView.view==='noteEditor')?<NoteEditor />:null}</>);
 }
 
 export default NoteEditorContainer;

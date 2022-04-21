@@ -1,4 +1,5 @@
-import Fuse from 'fuse.js'
+import Fuse from 'fuse.js';
+import ClipboardJS from 'clipboard';
 /*
 Examples:
 TAGS:
@@ -13,12 +14,11 @@ CONFIG:
 In the DB =  |Key: 'notesOrder' | Value: {name:'notesOrder' value:[1,2,4,3]} | ;  
 notesOrderCache = [{key:'notesOrder', value:[1,2,4,3]}, ...] 
 
+NOTESORDERBYRAG
+In the DB = |Key: 12 | Value: {tagKey:12 value:[1,2,4,3]} | ; 
+notesOrderByTagCache = [ {key:12 value:[1,2,3,4]}, {key:19 value:[45,1]} , {key:33 value:[4]}, {key:48 value:[]} ]  
 */
 
-//A LO MEJOR allnotesCache tiene que tener todas las notas, incluyendo las que estan en la papelera.
-//PERO cuando se piden las notas "default", hay que filtrar por su componente 'state'. De este modo si cambiamos todos los lugares donde se pide
-//allNotesCache por un metodo que haga (return this.allNC.filter(n=>n.state==='default') ), CREO que no afectaria al DND? <- tendria que
-//recalcular el arreglo de notesOrderCache si se borra una nota?
 class Data{
 
     constructor(){
@@ -29,11 +29,15 @@ class Data{
         this.NOTES_OBJECTSTORE_NAME = 'notes'
         this.TAGS_OBJECTSTORE_NAME = 'tags';
         this.TAGS_OBJECTSTORE_KEYPATH= 'name';
+        this.NOTESORDERBYTAG_OBJECTSTORE_NAME = 'notesOrderByTag';
+        this.NOTESORDERBYTAG_OBJECTSTORE_KEYPATH = 'tagKey'
+
         this.DBConecction = null;
 
         this.allNotesCache = [];
         this.allTagsCache = []; 
         this.notesOrderCache = [];
+        this.notesOrderByTagCache = [];
 
         this.fuseOptions = {
             includeScore: true,
@@ -56,6 +60,8 @@ class Data{
                 objectStoreConfig.onerror = e=>{console.log(`Imposible to create ConfigObjectStore: ${e}`)};
                 let objectStoreTags = dataBase.createObjectStore(this.TAGS_OBJECTSTORE_NAME, { autoIncrement: true});
                 objectStoreTags.onerror = e=>{console.log(`Imposible to create TagsObjectStore: ${e}`)};
+                let objectStoreNotesOrderByTags = dataBase.createObjectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME, { keyPath: this.NOTESORDERBYTAG_OBJECTSTORE_KEYPATH});
+                objectStoreNotesOrderByTags.onerror = e=>{console.log(`Imposible to create notesOrderByTagObjectStore: ${e}`)};
 
                 objectStoreConfig.transaction.oncomplete = event=>{
                     let objectStoreConfig = dataBase.transaction(this.CONFIG_OBJECTSTORE_NAME, "readwrite").objectStore(this.CONFIG_OBJECTSTORE_NAME);
@@ -66,13 +72,19 @@ class Data{
             request.onsuccess = (event) =>{
                 this.DBConecction = event.target.result;
                
-                let transaction = this.DBConecction.transaction([this.CONFIG_OBJECTSTORE_NAME,this.NOTES_OBJECTSTORE_NAME,this.TAGS_OBJECTSTORE_NAME], "readonly");
+                let transaction = this.DBConecction.transaction([this.CONFIG_OBJECTSTORE_NAME,this.NOTESORDERBYTAG_OBJECTSTORE_NAME, this.NOTES_OBJECTSTORE_NAME,this.TAGS_OBJECTSTORE_NAME], "readonly");
                 
                 //aca tendria tambien que recuperar el indice de Fuse.
                 //Retrieve all app configs.
                 let objectStoreConfig = transaction.objectStore(this.CONFIG_OBJECTSTORE_NAME);
                 let notesOrderRequest =objectStoreConfig.get('notesOrder'); 
                 notesOrderRequest.onsuccess= e=>{this.notesOrderCache = e.target.result.value; };
+
+                //Retrieve notesOrderByTagCache [{key:1 value:[1,2,3,4]} ,{},{}]
+                let objectStoreNotesOrderByTagCache = transaction.objectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME);
+                let notesOrderByTagRequest =objectStoreNotesOrderByTagCache.getAll(); 
+                notesOrderByTagRequest.onsuccess= e=>{this.notesOrderByTagCache = e.target.result; };
+
 
                 //Retrieve all notes.
                 let objectStoreNotes = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME);
@@ -127,11 +139,17 @@ class Data{
     //Cualquier metodo que modifique o cree en la BD, debe encargarse tambien de actualizar la cache.
     //Ademas puedo tener un metodo que se llame refreshCache(), que tire todo a la mierda y busque directamente todo de nuevo desde la BD.
 //-------------HELPERS--------------
-sortNotes(notesArray){
+sortNotesViejo(notesArray){
     notesArray.sort((noteA,noteB)=>{
         return (this.notesOrderCache.indexOf(noteA.key) - this.notesOrderCache.indexOf(noteB.key));
     });
-    return notesArray;
+    return [...notesArray];
+}
+sortNotes(notesArray, orderArray = this.notesOrderCache){
+    notesArray.sort((noteA,noteB)=>{
+        return (orderArray.indexOf(noteA.key) - orderArray.indexOf(noteB.key));
+    });
+    return [...notesArray];
 } 
 
 sortTags(tagsArray){
@@ -148,7 +166,8 @@ sortTags(tagsArray){
 //Save a new note and resolve with the updated allNotesCache
 saveNewNote(newNote) {
     return new Promise((resolve, reject) => {
-        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME], "readwrite");
+        let newNoteTags = newNote.noteTags;
+        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME,this.NOTESORDERBYTAG_OBJECTSTORE_NAME], "readwrite");
         
         //Save the note to the DB, and getting the new key.
         let objectStoreNotes = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME);
@@ -159,16 +178,30 @@ saveNewNote(newNote) {
         let newNoteKey = -1;
         addNoteRequest.onsuccess = event =>{
             newNoteKey = event.target.result;
+
+            //Add the new note key, to the notesOrder array.     
+            let configObjectStore = transaction.objectStore(this.CONFIG_OBJECTSTORE_NAME);
+            let requestNotesOrderConfig = configObjectStore.get('notesOrder');
+            requestNotesOrderConfig.onsuccess = event=>{
+                let data = event.target.result;
+                data.value = [newNoteKey,...data.value];
+                configObjectStore.put(data);
+            }
+
+            //Updating notesOrderByTag
+            let notesOrderByTagObjectStore = transaction.objectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME);
+            for (let tagKey of newNoteTags){
+                let noteKey = newNoteKey;
+                let notesOrderByTagRequest =  notesOrderByTagObjectStore.get(tagKey);
+                notesOrderByTagRequest.onsuccess = event =>{
+                    let notesOrderByTagArray = event.target.result.value;
+                    if (!notesOrderByTagArray.includes(noteKey))
+                        notesOrderByTagArray=[noteKey,...notesOrderByTagArray];
+                    notesOrderByTagObjectStore.put({tagKey:tagKey, value:notesOrderByTagArray});
+                }  
+            }
         }
- 
-        //Add the new note key, to the notesOrder array.     
-        let configObjectStore = transaction.objectStore(this.CONFIG_OBJECTSTORE_NAME);
-        let requestNotesOrderConfig = configObjectStore.get('notesOrder');
-        requestNotesOrderConfig.onsuccess = event=>{
-            let data = event.target.result;
-            data.value = [newNoteKey,...data.value];
-            configObjectStore.put(data);
-        }
+
         
         //On complete, update the notesOrdeCache, the search index, and the allNotesCache.
         //then resolve whith the new allNotesCache
@@ -178,7 +211,16 @@ saveNewNote(newNote) {
             const newNoteWithId ={key:newNoteKey, ...newNote, ...additionalData}; 
             this.allNotesCache = [...this.sortNotes([newNoteWithId ,...this.allNotesCache])];
             this.fuse.setCollection(this.allNotesCache); //fuse.add() Agrega a la coleccion y al indice pero raro.
-            resolve(this.allNotesCache); 
+            
+            //updating notesOrderByTagCache 
+            this.notesOrderByTagCache = this.notesOrderByTagCache.map((noteOrder)=>{
+                if (!newNoteTags.includes(noteOrder.tagKey))
+                    return noteOrder;
+                else 
+                    return ( {tagKey:noteOrder.tagKey, value: [newNoteKey,...noteOrder.value]} );
+            });
+
+            resolve(this.getNotes()); 
         };
 
         transaction.onerror = event => {console.log(`ERROR: cannot save the note. ${event}`);};
@@ -188,9 +230,9 @@ saveNewNote(newNote) {
 updateNote(noteToUpdate){
     return new Promise((resolve,reject)=>{
         const {key,title,text,noteTags} = noteToUpdate;
-        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME], "readwrite");
-        let objectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
-        let updateRequest = objectStore.get(key);
+        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.NOTESORDERBYTAG_OBJECTSTORE_NAME], "readwrite");
+        let notesObjectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
+        let updateRequest = notesObjectStore.get(key);
         
         let note = null;
         updateRequest.onsuccess = event =>{
@@ -199,50 +241,239 @@ updateNote(noteToUpdate){
             note.title = title;
             note.noteTags = noteTags;
             note.lastModifyDate = Date.now();
-            objectStore.put(note,key);
+            notesObjectStore.put(note,key);
+
+            //Updating notesOrderByTag 
+            let notesOrderByTagObjectStore = transaction.objectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME);
+            let notesOrderByTagRequestKeys =  notesOrderByTagObjectStore.getAllKeys(); 
+            notesOrderByTagRequestKeys.onsuccess = event =>{
+                let allNotesOrderByTagsKeys = event.target.result;
+                for (let notesOrderByTagKey of allNotesOrderByTagsKeys){
+                    let notesOrderByTagRequest =  notesOrderByTagObjectStore.get(notesOrderByTagKey); 
+                    notesOrderByTagRequest.onsuccess = event =>{
+                        let notesOrderByTag = event.target.result;
+                        if(noteTags.includes(notesOrderByTag.tagKey)){
+                            if(!notesOrderByTag.value.includes(key)){
+                                notesOrderByTag = {tagKey:notesOrderByTag.tagKey, value:[key,...notesOrderByTag.value]};
+                            }
+                        }
+                        else{
+                            if(notesOrderByTag.value.includes(key)){
+                                let newValue = notesOrderByTag.value.filter((noteKey)=>noteKey!==key);
+                                notesOrderByTag = {tagKey:notesOrderByTag.tagKey, value:[...newValue]};
+                            }
+                        }
+                        notesOrderByTagObjectStore.put(notesOrderByTag); 
+                    }
+                }   
             }
+
+
+        }
+        //update notesOrderByTag
+
         transaction.oncomplete = event=>{
             const indexToRemove = this.allNotesCache.findIndex((note)=>note.key === key);
             this.allNotesCache = [...this.allNotesCache.slice(0,indexToRemove),{key:key,...note},...this.allNotesCache.slice(indexToRemove+1) ];
             this.allNotesCache = [...this.sortNotes(this.allNotesCache)];
             this.fuse.setCollection(this.allNotesCache);
-            resolve(this.allNotesCache); 
+
+            //update notesOrderByTag Cache.
+            this.notesOrderByTagCache = this.notesOrderByTagCache.map((noteOrder)=>{
+                if(noteTags.includes(noteOrder.tagKey)){
+                    if (noteOrder.value.includes(key)){
+                        return noteOrder;
+                    }else{
+                        return ( {tagKey:noteOrder.tagKey, value: [key,...noteOrder.value]} ); 
+                    }
+                }
+                else{
+                    if (noteOrder.value.includes(key)){
+                        let newNoteOrderByTag = noteOrder.value.filter((noteKey)=>noteKey!== key)
+                        return ( {tagKey:noteOrder.tagKey, value: [...newNoteOrderByTag]} ); 
+                    }else{
+                        return noteOrder;
+                    }
+                } 
+            });
+            // resolve(this.allNotesCache); 
+            resolve(this.getNotes());
         }
     });
 }
-//MUCHO OJO ACA, tambien tendria que ver q hago con los orderNotesCache y la BD! pensar bien, por ahora es un croquis este metodo.
-//Preguntas... allNotesCache tiene TODOS las notas y filtra las q no son 'trash'? <-como afectaria esto al DND?. O esas deberian ir en otro lado?.
-//Tener en cuenta que se debe borrar tb la note.key del noteOrderCache
-//Afectaria al DND porque el DND agarra los indices reales de la lista? 
 sendNoteToTrash(key){
+    return this.sendNotesToTrash([key]);
+}
+sendNotesToTrash(keysArray){
     return new Promise((resolve,reject)=>{
-        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME], "readwrite");
+        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME], "readwrite");
         let objectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
-        let updateRequest = objectStore.get(key);
+        let configObjectStore = transaction.objectStore(this.CONFIG_OBJECTSTORE_NAME); 
         
+        keysArray.forEach((key)=>{
+            let updateRequest = objectStore.get(key);
+            let note = null;
+            updateRequest.onsuccess = event =>{
+                note = event.target.result;
+                note.state = 'trash';
+                //note.lastModifyDate = Date.now();
+                objectStore.put(note,key);
+            }
+        });
+
+        let requestNotesOrderConfig = configObjectStore.get('notesOrder');
+        let newNotesOrder = this.notesOrderCache.filter((key)=> !keysArray.includes(key))
+        requestNotesOrderConfig.onsuccess = event=>{
+            let data = event.target.result;
+            data.value = newNotesOrder; 
+            configObjectStore.put(data);
+        }
+
+        transaction.onerror = event => {console.log(`ERROR: Fail at sending a note to trash can. ${event}`);};
+        transaction.oncomplete = event=>{
+            this.notesOrderCache = [...newNotesOrder];
+            this.allNotesCache = this.allNotesCache.map((note)=>{
+                if(keysArray.includes(note.key))
+                    return ({...note, state:'trash'});
+                return ({...note});
+            })
+            resolve(this.getNotes());
+        }
+    }); 
+}
+sendNoteToTrashViejo(key){
+    return new Promise((resolve,reject)=>{
+        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME], "readwrite");
+        let objectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
+        let configObjectStore = transaction.objectStore(this.CONFIG_OBJECTSTORE_NAME); 
+        
+        let updateRequest = objectStore.get(key);
         let note = null;
         updateRequest.onsuccess = event =>{
             note = event.target.result;
             note.state = 'trash';
-            note.lastModifyDate = Date.now();
-            objectStore.put(note);
-            }
+            //note.lastModifyDate = Date.now();
+            objectStore.put(note,key);
+        }
+
+        let requestNotesOrderConfig = configObjectStore.get('notesOrder');
+        let newNotesOrder = [...this.notesOrderCache];
+        const indexToRemove = newNotesOrder.indexOf(key);
+        newNotesOrder = [...newNotesOrder.slice(0, indexToRemove),...newNotesOrder.slice(indexToRemove+1)];
+
+        requestNotesOrderConfig.onsuccess = event=>{
+            let data = event.target.result;
+            data.value = newNotesOrder; 
+            configObjectStore.put(data);
+        }
+
+        transaction.onerror = event => {console.log(`ERROR: Fail at sending a note to trash can. ${event}`);};
         transaction.oncomplete = event=>{
-            const indexToRemove = this.allNotesCache.findIndex((note)=>note.key === key);
-            this.allNotesCache = [...this.allNotesCache.slice(0,indexToRemove),...this.allNotesCache.slice(indexToRemove+1) ];
-            //aca tendria que sacar ese indice de noteOrderCache y de la DB
-            this.allNotesCache = [...this.sortNotes(this.allNotesCache)];
-            this.fuse.setCollection(this.allNotesCache);
-            //ACA quiza tendria que agregar algo asi como (crear en DB primero obio) notesInTrashCan=[1,55,24,82] con su respectivo notesInTrashCanCache=[1,55,24,82]
-            resolve(this.allNotesCache); 
+            this.notesOrderCache = [...newNotesOrder];
+
+            const noteIndex = this.allNotesCache.findIndex((note)=>note.key === key);
+            this.allNotesCache[noteIndex].state = 'trash';
+            this.allNotesCache = [...this.allNotesCache];
+            
+            resolve(this.getNotes());
         }
     }); 
 }
-//OJO ACA TB, Tengo que ver de donde se elimina definitivamente. La idea era que habia una papelera y que solo de ahi se elimina.
-//a lo mejor tendria que tener un notesInTrashCan=[1,55,24,82] con su respectivo, notesInTrashCanCache=[1,55,24,82]
-//Delete a note finded by key, and resolve with the updated allNotesCache
-//Tener en cuenta que se debe bprrar tb la note.key del noteOrderCache
+restoreNote(key){
+    return new Promise((resolve,reject)=>{
+        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME], "readwrite");
+        let objectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
+        let configObjectStore = transaction.objectStore(this.CONFIG_OBJECTSTORE_NAME); 
+        
+        let updateRequest = objectStore.get(key);
+        let note = null;
+        updateRequest.onsuccess = event =>{
+            note = event.target.result;
+            note.state = 'listed';
+            //note.lastModifyDate = Date.now();
+            objectStore.put(note,key);
+        }
+
+        let requestNotesOrderConfig = configObjectStore.get('notesOrder');
+        let newNotesOrder = [key,...this.notesOrderCache];
+
+        requestNotesOrderConfig.onsuccess = event=>{
+            let data = event.target.result;
+            data.value = newNotesOrder; 
+            configObjectStore.put(data);
+        }
+
+        transaction.onerror = event => {console.log(`ERROR: Fail at restoring a note from the trash can. ${event}`);};
+        transaction.oncomplete = event=>{
+            this.notesOrderCache = [...newNotesOrder];
+
+            const noteIndex = this.allNotesCache.findIndex((note)=>note.key === key);
+            this.allNotesCache[noteIndex].state = 'listed';
+            this.allNotesCache = [...this.allNotesCache];
+            
+            resolve(this.getTrashedNotes());
+        }
+    }); 
+}
+
 deleteNote(key){
+    return this.deleteNotes([key]);
+}
+deleteNotes(keysArray){
+    return new Promise((resolve,reject)=>{
+        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME,this.NOTESORDERBYTAG_OBJECTSTORE_NAME], "readwrite");
+        let objectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
+        let configObjectStore = transaction.objectStore(this.CONFIG_OBJECTSTORE_NAME); 
+        let notesOrderByTagObjectStore = transaction.objectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME);
+        
+        keysArray.forEach((key)=>{
+            let deleteRequest = objectStore.delete(key);
+        });
+
+        //En el flujo normal esto no pasa, porque la nota del basurero,YA fue sacada del notesOrder.....
+        let requestNotesOrderConfig = configObjectStore.get('notesOrder');
+        let newNotesOrder = this.notesOrderCache.filter((key)=> !keysArray.includes(key))
+        requestNotesOrderConfig.onsuccess = event=>{
+            let data = event.target.result;
+            data.value = newNotesOrder; 
+            configObjectStore.put(data);
+        }
+
+        //Updating notesOrderByTag 
+        let notesOrderByTagRequestKeys =  notesOrderByTagObjectStore.getAllKeys(); 
+        notesOrderByTagRequestKeys.onsuccess = event =>{
+            let allNotesOrderByTagsKeys = event.target.result;
+            for (let notesOrderByTagKey of allNotesOrderByTagsKeys){
+                let notesOrderByTagRequest =  notesOrderByTagObjectStore.get(notesOrderByTagKey); 
+                notesOrderByTagRequest.onsuccess = event =>{
+                    let notesOrderByTag = event.target.result;
+                    let newNotesOrderByTagValue= notesOrderByTag.value.filter((noteKey)=>!keysArray.includes(noteKey));
+                    notesOrderByTag.value = newNotesOrderByTagValue;
+                    notesOrderByTagObjectStore.put(notesOrderByTag); 
+                }
+            }   
+        }
+
+        transaction.onerror = event => {console.log(`ERROR: Fail at sending a note to trash can. ${event}`);};
+        transaction.oncomplete = event=>{
+            this.notesOrderCache = [...newNotesOrder];
+            this.allNotesCache = this.allNotesCache.filter((note)=>{
+                return !keysArray.includes(note.key);
+            })
+
+            this.notesOrderByTagCache = this.notesOrderByTagCache.map((notesOrder)=>{
+                let newNotesOrderValue = notesOrder.value.filter((noteKey)=>!keysArray.includes(noteKey));
+                return ({tagKey:notesOrder.tagKey, value:newNotesOrderValue});
+            });
+
+            console.log("notesOderBtTagCache luego de eliminar:",this.notesOrderByTagCache);
+            // resolve(this.getNotes());
+            resolve(this.getTrashedNotes());
+        }
+    }); 
+}
+
+deleteNoteViejo(key){
     return new Promise((resolve,reject)=>{
         let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME], "readwrite");
         let objectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
@@ -257,15 +488,22 @@ deleteNote(key){
         }
     });
 }
+
 getNotes(){
     const nonDeletedNotes = this.allNotesCache.filter((note)=>note.state==='listed');
     return this.sortNotes(nonDeletedNotes);
 }
-getDeletedNotes(){
-    //este metodo deberia retornar solo las notas con estado 'deleted', en orden de fecha de lastModify?.;
-    const deletedNotes = this.allNotesCache.filter((note)=>note.status==='deleted');
-    return deletedNotes;
+getNotesFilteredByTag(tagKey){
+    console.log(tagKey,this.notesOrderByTagCache);
+    const orderArray = this.notesOrderByTagCache.find((notesOrder)=>notesOrder.tagKey === tagKey).value;
+    const notesFilteredByTag = this.allNotesCache.filter((note)=>{ return (note.state==='listed' && note.noteTags.includes(tagKey));});
+    return this.sortNotes(notesFilteredByTag,orderArray);
 }
+getTrashedNotes(){
+    const trashedNotes = this.allNotesCache.filter((note)=>note.state==='trash');
+    return trashedNotes;
+}
+//Este reorder ahora va a ser distinto, va a depender de si son todas las notes o las si estamos viendo un Tag.
 reorderNotes (sourceKey,destinationKey){
     const reorderedNotesOrderCache = [...this.notesOrderCache];  
     reorderedNotesOrderCache.splice(
@@ -288,6 +526,41 @@ reorderNotes (sourceKey,destinationKey){
     transaction.oncomplete = event => { };
     
     return (this.getNotes());
+}
+
+reorderNotesFilteredByTag (sourceKey,destinationKey,tagKey){
+    console.log(`reorderNotesFilterderByTag: sourceKey:${sourceKey} destinationKey:${destinationKey} tagKey:${tagKey}`);
+    const index = this.notesOrderByTagCache.findIndex((e)=>e.tagKey === tagKey);
+    const reorderedNotesByTag = [...this.notesOrderByTagCache.find((e)=>e.tagKey === tagKey).value];
+
+    //reordering notesOrderByTag array
+    reorderedNotesByTag.splice(
+        reorderedNotesByTag.indexOf(destinationKey),
+        0,
+        reorderedNotesByTag.splice(reorderedNotesByTag.indexOf(sourceKey),1)[0]);
+
+    console.log(reorderedNotesByTag);   
+    //replacing the object with the new one
+    this.notesOrderByTagCache = [...this.notesOrderByTagCache.slice(0,index),
+        {tagKey:tagKey, value:[...reorderedNotesByTag]},
+        ...this.notesOrderByTagCache.slice(index+1)]; 
+        
+    console.log(this.notesOrderByTagCache);
+
+
+    //asynchronously update the notesOrderByTag in the DB.
+    let transaction = this.DBConecction.transaction([this.NOTESORDERBYTAG_OBJECTSTORE_NAME], "readwrite");
+    let notesOrderByTagObjectStore = transaction.objectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME); 
+    let notesOrderByTagRequest = notesOrderByTagObjectStore.get(tagKey);
+    notesOrderByTagRequest.onsuccess = event=>{
+        let data = event.target.result;
+        data.value = reorderedNotesByTag; 
+        notesOrderByTagObjectStore.put(data);
+    }
+    transaction.onerror = event => {console.log(`ERROR: Fail at save new order of notes. ${event}`);};
+    transaction.oncomplete = event => { };
+    
+    return (this.getNotesFilteredByTag(tagKey));
 }
 
 //Reorder allNotesCache, and save notes order in DB and notesOrderCache.
@@ -316,13 +589,24 @@ reorderNotesViejo (sourceIndex,destinationIndex){
     
     return (this.allNotesCache);
 }
+
 //Search with Fuse.
-searchNotes(term){
-    if (term.trim()==='')
-        return (this.allNotesCache);
+searchNotes(term, view = 'default'){
+    term = term.trim();
+    if (term===''){
+        if (view === 'default')
+            return (this.getNotes());
+        if (view === 'trash')
+            return (this.getTrashedNotes());
+    }
 
     const result = this.fuse.search(term);
     const notesResult = result.map((result)=>result.item);
+    if (view === 'default')
+            return ( notesResult.filter((note)=> note.state === 'listed') );
+    if (view === 'trash')
+            return ( notesResult.filter((note)=> note.state === 'trash') );
+
     return notesResult;
 }
 getNoteTextByKey(key){
@@ -341,21 +625,29 @@ saveNewTag(newTag){
 }
 saveNewTags(newTags){
     return new Promise ((resolve,reject)=>{
-        let transaction = this.DBConecction.transaction([this.TAGS_OBJECTSTORE_NAME], "readwrite");
-        let objectStore = transaction.objectStore(this.TAGS_OBJECTSTORE_NAME);
-        let newTagsToCache = [];
+        let transaction = this.DBConecction.transaction([this.TAGS_OBJECTSTORE_NAME,this.NOTESORDERBYTAG_OBJECTSTORE_NAME], "readwrite");
+        let objectStoreTags = transaction.objectStore(this.TAGS_OBJECTSTORE_NAME);
+        let objectStoreNotesOrderByTag = transaction.objectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME);
+        let newTags_To_Cache = [];
+        let newTags_To_NotesOrderByTag = [];
 
         for (let newTag of newTags){
-            let addRequest = objectStore.add({name:newTag.name});
+            let addRequest = objectStoreTags.add({name:newTag.name});
             addRequest.onsuccess = e=>{
                 let newKey = e.target.result;
-                newTagsToCache.push({key:newKey, name:newTag.name});
+                newTags_To_Cache.push({key:newKey, name:newTag.name});
+                //Now create notesOrderByTag element:
+                let addNotesOrderByTagRequest = objectStoreNotesOrderByTag.add({tagKey:newKey, value:[]});
+                addNotesOrderByTagRequest.onsuccess = e=>{
+                    newTags_To_NotesOrderByTag.push({tagKey:newKey, value:[]});
+                }
             }
             addRequest.onerror = e=>{console.log(`ERROR: Impossible to save the new tag: ${newTag}. Abort all tags saving. ${e}`)};
         }
        
         transaction.oncomplete = event=>{
-            this.allTagsCache = [...this.sortTags([...newTagsToCache,...this.allTagsCache])];
+            this.allTagsCache = [...this.sortTags([...newTags_To_Cache,...this.allTagsCache])];
+            this.notesOrderByTagCache = [...newTags_To_NotesOrderByTag, ...this.notesOrderByTagCache];
             resolve(this.allTagsCache);
         }
     });
@@ -363,9 +655,10 @@ saveNewTags(newTags){
 deleteTags(tagsToDelete){//tagToDelete contiene las keys de los tags a eliminar ej: [1,2,5,663,23]
     return new Promise((resolve,reject)=>{
         const tagsKeysToDelete = tagsToDelete.map(tagToDelete => tagToDelete.key);
-        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.TAGS_OBJECTSTORE_NAME], "readwrite");
+        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.TAGS_OBJECTSTORE_NAME,this.NOTESORDERBYTAG_OBJECTSTORE_NAME], "readwrite");
         let notesObjectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
         let tagsObjectStore = transaction.objectStore(this.TAGS_OBJECTSTORE_NAME);
+        let notesOrderByTagObjectStore = transaction.objectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME);
 
         function includesTagsToDelete(noteTagKeyList,tagsKeysToDelete){
             for (let noteTagKey of noteTagKeyList){
@@ -389,10 +682,17 @@ deleteTags(tagsToDelete){//tagToDelete contiene las keys de los tags a eliminar 
         });
 
         //delete tags from db
-        tagsKeysToDelete.forEach((tagToDelete)=>{
-            let deleteTagRequest = tagsObjectStore.delete(tagToDelete);
-            deleteTagRequest.onerror = e=>{console.log(`ERROR: Cant delete tag: ${tagToDelete}. ${e}`);}
+        tagsKeysToDelete.forEach((tagKeyToDelete)=>{
+            let deleteTagRequest = tagsObjectStore.delete(tagKeyToDelete);
+            deleteTagRequest.onerror = e=>{console.log(`ERROR: Cant delete tag with key: ${tagKeyToDelete}. ${e}`);}
         });
+
+        //delete notesOrderByTag from db
+        tagsKeysToDelete.forEach((tagKeyToDelete)=>{
+            let deleteNotesOrderByTagRequest = notesOrderByTagObjectStore.delete(tagKeyToDelete);
+            deleteNotesOrderByTagRequest.onerror = e=>{console.log(`ERROR: Cant delete NotesOrderByTag with key: ${tagKeyToDelete}. ${e}`);}
+        });
+
 
         transaction.oncomplete = e=>{
             //Update notes and tags caches.
@@ -405,6 +705,9 @@ deleteTags(tagsToDelete){//tagToDelete contiene las keys de los tags a eliminar 
                 })
             );
             this.allTagsCache = this.sortTags(this.allTagsCache.filter((tag)=>!tagsKeysToDelete.includes(tag.key)));
+
+            this.notesOrderByTagCache = this.notesOrderByTagCache.filter((notesOrder)=>!tagsKeysToDelete.includes(notesOrder.tagKey));
+            console.log("this.notesOrderByTagCache en borrar tags:", this.notesOrderByTagCache);
             resolve();
         }
     });
@@ -466,3 +769,44 @@ getTagsByIds(tagArray = null){
 
 }//end class Data
 export const AppData = new Data();
+
+////////////////////LONG-PRESS-EVENT (https://github.com/john-doherty/long-press-event) //////////////////////////
+/*
+// the event bubbles, so you can listen at the root level
+document.addEventListener('long-press', function(e) {
+    //IMPORTANTE: Si esto lo hago en NoteList.js (en </NoteCard>) No hace falta ponerlo aca!. Cada NoteCard tendria su propio eventListener....
+    //Con respecto a en que parte se hace el click en la noteCard, se pueden hacer 2 cosas aca: 
+    //1) NO ANDA BIEN Dejar que el evento suba con Bubbling y simplemente aca preguntamos si e.target.matches('.note-card-container') obtenemos su id con los dataset y ahi lo que querramos.
+    //   El método element.matches('cssSelector') comprueba si el Element sería seleccionable por el selector CSS especificado en la cadena; en caso contrario, retorna false.
+    //   Este no andaria bien, porque si hacemos click en un elemento interno, obviamente matches no va a andar, tendria que tener un matches con muchas cosas... mejor el 2)
+    //2) Usar e.target.closest('.note-card-container') para obtener el elemento note-card-container mas cercano al disparo del evento, y obtenemos su id con los dataset y ahi lo que querramos.
+    
+    console.log(e);
+    const element = e.target;
+    const elementCardContainer = element.closest('.note-card-container');//el elemento mas cercano de forma ascendiente o el mismo que cumpla con el selector.
+    if(elementCardContainer){
+     const noteKey = elementCardContainer.dataset.noteKey;
+     console.log(`*Abro el editor para la noteId:${noteKey} , y prevengo default click event*`);
+     e.preventDefault();// o e.stopPropagation();?
+    }
+  });
+  */
+////////////////////LONG-PRESS-EVENT//////////////////////////
+
+////////////////////CLIPBOARDJS (clipboardjs.com)///////////////////////////////////
+// const clipboard = new ClipboardJS('.card-container');
+const clipboard = new ClipboardJS('.note-card-container', {
+    text: function(trigger) {
+        const noteKey = parseInt(trigger.dataset.noteKey);
+        return AppData.getNoteTextByKey(noteKey);
+    }
+});
+clipboard.on('success', function(e) {
+    console.log(`Se Copio: ${(e.text)}`);
+    e.clearSelection();
+});
+clipboard.on('error', function(e) {
+    console.error('Action:', e.action);
+    console.error('Trigger:', e.trigger);
+});
+////////////////////CLIPBOARDJS///////////////////////////////////

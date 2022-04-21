@@ -1,73 +1,117 @@
 import { Context } from "./Copi";
-import { memo, useContext, useState} from "react";
+import { memo, useContext, useEffect, useRef, useState} from "react";
+import React from "react";
+import { toast,ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { DragDropContext } from "react-beautiful-dnd";
 import { Droppable } from "react-beautiful-dnd";
 import { Draggable } from "react-beautiful-dnd";
 import { AppData } from "../data/Data2";
-import NoteEditor from './NoteEditor';
 //NoteList deberia ser el padre de una serie de Componentes Memoizados con memo (los de la lista).
 
-const NoteList = () =>{
-    const {noteList,setNoteList,view} = useContext(Context);
-    console.log(view);
-    if (!noteList.length)
-        return (<div>No hay notas</div>);
+const NoteCard = memo((props) =>{
+    const {isSelected,note,selectNoteHandler} = props;
+    const {setNoteToEdit,appView,setAppView,setNoteList} = useContext(Context);
+    const noteCardRef = useRef(null);
 
-    return(
-        <DragDropContext onDragEnd={(dragEndObject)=>{ //DRAG HANDLER
-            if (dragEndObject.destination != null){
-            // const sourceIndex = dragEndObject.source.index;
-            // const destinationIndex = dragEndObject.destination.index;
-            // setNoteList(AppData.reorderNotes(sourceIndex,destinationIndex));
-            const sourceKey = noteList[dragEndObject.source.index].key;
-            const destinationKey = noteList[dragEndObject.destination.index].key;
-            setNoteList(AppData.reorderNotes(sourceKey,destinationKey));
-        }}}>
-            <Droppable droppableId='droppeable-1'>
-            {(provided,snapshot)=> (
-                <div className='listContainer' ref={provided.innerRef} {...provided.droppableProps}>
-                    <ListContent noteList={noteList} isDragDisabled={view!=='default'}/>
-                    {/* A lo mejor tendria que crear un flagsito o un objeto state, para saber en que lista estamos y deshabilitar el drag. */}
-                    {provided.placeholder}
-                </div>
-            )}
-            </Droppable>
-        </DragDropContext>
-    )
-}
+    const clickHandler = (event) => {
+        if (appView.isSelecting) {
+            selectNoteHandler(note.key);
+            event.stopPropagation(); //previene copiado...
+        }
+        else{//react-toastify
+            const toastText = note.title.length < 10? note.title : note.title.substring(0,9)+'...';
+            toast.info(`${toastText} Copied!`, {
+            position: toast.POSITION.BOTTOM_CENTER,
+            autoClose: 1000,
+            toastId:note.key.toString(),
+            pauseOnHover: false,
+            pauseOnFocusLoss:false,
+            hideProgressBar:true,
+            onOpen: () => {},
+            onClose: () => {},
+            });
+        }
+      };
+  
 
-const NoteCard_ConNoteEditorProps = (props) =>{
-    const {note} = props;
-    // const {setNoteToEdit,toggleNoteEditor} = useContext(Context);
-    const [showNoteEditor,setShowNoteEditor]= useState(false);
-    const closeNoteEditorHandler = ()=>{
-        setShowNoteEditor(false);
+    function openNoteEditor(event,note){
+        setNoteToEdit(note);
+        setAppView({view:'noteEditor'});
+        event.stopPropagation();
     }
+
+    //esto esta medio feito...
+    useEffect(()=>{
+        const fn = (e)=>{
+            setNoteToEdit(note);
+            setAppView({view:'noteEditor'});
+            e.stopPropagation(); 
+        }
+        const noteRef = noteCardRef.current;
+        noteRef.addEventListener('long-press', fn);
+        return () => { 
+            if (noteRef)
+                noteRef.removeEventListener('long-press', fn); 
+         }
+    },[note]);
+
     return(
-        showNoteEditor
-        ?<NoteEditor noteToEdit={note} closeNoteEditorHandler={closeNoteEditorHandler}/>
-    :<div className="noteCard">
+    <div className="noteCard" ref={noteCardRef} onClick={(e)=>{clickHandler(e);}} style={isSelected?{backgroundColor:"purple"}:{}}>
         <p>{note.title}</p>
         <p>{note.text}</p>
-        {/* <button onClick={()=>{setNoteToEdit(note);toggleNoteEditor();}}>E</button> */}
-        <button onClick={()=>{setShowNoteEditor(true)}}>E</button>
+
+        {/* {view==='default'?<button onClick={(e)=>{console.log(note); setNoteToEdit(note); setView('noteEditor'); e.stopPropagation();}}>E</button>:null} */}
+        {appView.view==='default'?<button onClick={(e)=>{openNoteEditor(e,note)}}>E</button>:null}
+
+        {appView.view==='default'?<button onClick={(e)=>{
+            AppData.sendNoteToTrash(note.key).then((noteList)=>{setNoteList(noteList );});
+            e.stopPropagation();
+            }}>D</button>
+        :null}
+
+        {note.state==='trash'? <button onClick={(e)=>{
+            AppData.restoreNote(note.key).then((trashedNotes)=>{
+                setNoteList(trashedNotes);
+            })
+            e.stopPropagation();
+            }
+            }>Restore</button>
+        :null}
+
+        {note.state==='trash'? <button onClick={(e)=>{
+            AppData.deleteNote(note.key).then((trashedNotes)=>{
+                setNoteList(trashedNotes);
+            })
+            e.stopPropagation();
+            }
+            }>asesinar</button>
+        :null}
+
+        {/* <ToastContainer /> */}
     </div>
     );
-}
-const NoteCard = (props) =>{
-    const {note} = props;
-    const {setNoteToEdit,setView} = useContext(Context);
-    
-    return(
-    <div className="noteCard">
-        <p>{note.title}</p>
-        <p>{note.text}</p>
-        <button onClick={(e)=>{setNoteToEdit(note); setView('noteEditor'); e.stopPropagation();}}>E</button>
-    </div>
-    );
-}
+});
+
+
 const ListContent = memo((props) => {
     const {noteList,isDragDisabled} = props;
+    const [selectedNotesKeys,setSelectedNotesKeys] = useState([]);
+    const {appView,setAppView} = useContext(Context);
+
+    console.log("selectedNotesKeys:", selectedNotesKeys);
+
+    //esto esta medio feo (renderiza 2 veces.)
+    useEffect(()=>{
+        if(!appView.isSelecting)
+            setSelectedNotesKeys([]);
+    },[appView]);
+
+    const selectANote = (noteKey)=>{//(toggle)
+        selectedNotesKeys.includes(noteKey)
+        ? setSelectedNotesKeys(selectedNotesKeys.filter((key)=>key!==noteKey))
+        : setSelectedNotesKeys((oldSelectedNotes)=>[noteKey,...oldSelectedNotes]);
+    }
     
     const listContent =  noteList.map((note,index) => (
     <Draggable
@@ -78,7 +122,7 @@ const ListContent = memo((props) => {
         {(provided,snapshot)=>(
             <div className='note-card-container'
              id={'note-card-container'+note.key}
-             data-note-id={note.key}
+             data-note-key={note.key}
              ref={provided.innerRef}
              {...provided.draggableProps}
              {...provided.dragHandleProps}
@@ -87,15 +131,50 @@ const ListContent = memo((props) => {
              "1px solid red" : "1px solid white" , 
              boxSahdow: snapshot.isDragging?
              "0 0 .4rem #666" : "none"}}>
-                <NoteCard note={note}/>
+                <NoteCard isSelected={selectedNotesKeys.includes(note.key)} note={note} selectNoteHandler={selectANote}/>
             </div>
         )}
     </Draggable>
     )) ;
-    //listContent.splice(0,0,<Separador key={9999} text="Pinned"/>);
-    //listContent.splice(6,0,<Separador key={9998} text="Others"/>);
-    return listContent;
+
+    return (
+    <>
+    {listContent}
+    <ToastContainer/>
+    </>)
 })
+
+const NoteList = () =>{
+    const {noteList,setNoteList,appView} = useContext(Context);
+    console.log(appView);
+    if (!noteList.length)
+        return (<div>No hay notas</div>);
+
+    return(
+        <DragDropContext onDragEnd={(dragEndObject)=>{ //DRAG HANDLER
+            if (dragEndObject.destination != null){
+                const sourceKey = noteList[dragEndObject.source.index].key;
+                const destinationKey = noteList[dragEndObject.destination.index].key;
+                //Yo tendria que dejar mover las notas que estan x tags, y tambien se tendrian que guardar en ese orden....
+                //esto implicaria un par de quilombos, pero seria lo ideal a nivel funcional...
+                if (appView.view === 'tagFiltered')
+                    setNoteList(AppData.reorderNotesFilteredByTag(sourceKey,destinationKey,appView.tagFilter));
+                else
+                    setNoteList(AppData.reorderNotes(sourceKey,destinationKey));
+        }}}>
+            <Droppable droppableId='droppeable-1'>
+            {(provided,snapshot)=> (
+                <div className='listContainer' ref={provided.innerRef} {...provided.droppableProps}>
+                    <ListContent noteList={noteList} isDragDisabled={appView.view!=='default' && appView.view!=='tagFiltered'}/>
+                    {/* A lo mejor tendria que crear un flagsito o un objeto state, para saber en que lista estamos y deshabilitar el drag. */}
+                    {provided.placeholder}
+                </div>
+            )}
+            </Droppable>
+        </DragDropContext>
+    )
+}
+
 
 
 

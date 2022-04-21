@@ -106,7 +106,7 @@ const tagsChangerReducer = (changesActions,action)=> {
 let localKeyId = 0; //Id negativas que se usan provisoriamente para los nuevos tags creados en esta pantalla....
 
 const TagsEditor=()=>{
-        const {setView} = useContext(Context);
+        const {setAppView} = useContext(Context);
         const [allTagsLocal,setAllTagsLocal] = useState(AppData.allTagsCache); // { [{key:0, name:'cocina'},{key:10, name:'perros},...]
         const [tagsChanges,dispatchTagsChanges] = useReducer(tagsChangerReducer,[]);
         const [modalView,setModalView] = useState({show:false});
@@ -154,8 +154,8 @@ const TagsEditor=()=>{
             />
             :null}
 
-            <button onClick={()=>{setView('default')}}>Cancelar</button>
-            <button onClick={()=>{saveChangesHandler(); setView('default')}} disabled={shouldDisableSaveButton()}>Save Changes</button>
+            <button onClick={()=>{setAppView({view:'default'})}}>Cancelar</button>
+            <button onClick={()=>{saveChangesHandler(); setAppView({view:'default'})}} disabled={shouldDisableSaveButton()}>Save Changes</button>
             <TagInputCreator saveTagHandler={createNewTagHandler} allTags={allTagsLocal}/>
 
             {
@@ -182,8 +182,8 @@ const TagsEditor=()=>{
 }
 
 const TagsEditorContainer = ()=>{
-    const {view} = useContext(Context);
-    return(<>{(view === 'tagsEditor')?<TagsEditor />:null}</>);
+    const {appView} = useContext(Context);
+    return(<>{(appView.view === 'tagsEditor')?<TagsEditor />:null}</>);
 }
 export default TagsEditorContainer;
 

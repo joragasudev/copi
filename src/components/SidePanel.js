@@ -4,7 +4,6 @@ import { AppData } from "../data/Data2";
 
 
 const TagList=(props)=>{
-    console.log('Rendering TagList...');
     const {clickTagHandler} = props;
     const allTags = AppData.allTagsCache; //[{key:1, name:'groceries'}, {key:2, name:'food'}] 
     return(
@@ -19,24 +18,22 @@ const TagList=(props)=>{
 }
 
 const SidePanel = ()=>{
-    const {view,setView,setNoteList} = useContext(Context);
+    const {appView,setAppView,setNoteList} = useContext(Context);
 
     const  clickTagHandler=(tagKey)=>{
-        //deberia borrar el search filter y filtrar allNotes
-        //allTags seria [{id:4, name:'Compras'}, ... ]
-        //y las notas [{id:55, tags:[1,4,6],... }, ...]
-        const notesFilteredByTag = AppData.allNotesCache.filter((note)=>{ //<-cambiar x AppData.getNotes()
-            return (note.noteTags.includes(tagKey));//Ojo porahi tienen q ser ambas strings/numb
-        });
+        //const notesFilteredByTag = AppData.getNotes().filter((note)=>{ return (note.noteTags.includes(tagKey));});
+        const notesFilteredByTag = AppData.getNotesFilteredByTag(tagKey);
         setNoteList(notesFilteredByTag);
+        setAppView({view:'tagFiltered', tagFilter:tagKey});
     }
 
     return(
-        <div className={`side-panel ${(view==='sidePanel')?'side-panel-show' : ''}`}onClick={()=>{setView('default')}}>
+        <div className={`side-panel ${(appView.view==='sidePanel')?'side-panel-show' : ''}`} onClick={()=>{/*setView('default');*/}}>
             Side panel
-            <button onClick={(e)=>{setView('tagsEditor');e.stopPropagation();}}>Editar</button>
-            <button onClick={()=>{setNoteList(AppData.allNotesCache);}}>Todas</button>{/*<-cambiar x AppData.getNotes()*/}
-            <button onClick={()=>{setNoteList(AppData.getDeletedNotes());}}>TrashCan</button>
+            <button onClick={(e)=>{setAppView({view:'tagsEditor'});e.stopPropagation();}}>Editar</button>
+            {/* <button onClick={()=>{setNoteList(AppData.allNotesCache);}}>Todas</button> */}
+            <button onClick={()=>{setAppView({view:'default'}); setNoteList(AppData.getNotes());}}>Todas</button>
+            <button onClick={()=>{setAppView({view:'trash'}); setNoteList(AppData.getTrashedNotes());}}>TrashCan</button>
             <TagList clickTagHandler={clickTagHandler}/>
         </div>
     );

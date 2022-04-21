@@ -17,14 +17,15 @@ export const Context = createContext({
 }); 
 
 const DefaultProvider = ({children})=>{
-    const [view,setView] = useState('default');//'default'/'tagsEditor'/'sidePanel'/'noteEditor'
+    const [appView,setAppView] = useState({view:'default'});//'default'/'tagsEditor'/'sidePanel'/'noteEditor'
     const [searchTerm,setSearchTerm] = useState(''); //probablemente no se necesite.
     const [noteList,setNoteList] = useState(null);
     const [noteToEdit,setNoteToEdit] = useState(null);
 
     //init
     useEffect(()=>{
-         AppData.connect().then( ()=>{ setNoteList(AppData.allNotesCache) }); //<-cambiar x AppData.getNotes()
+         //AppData.connect().then( ()=>{ setNoteList(AppData.allNotesCache) }); //<-cambiar x AppData.getNotes()
+         AppData.connect().then( ()=>{ setNoteList(AppData.getNotes()) }); 
     },[]);
 
     const value = {
@@ -38,8 +39,8 @@ const DefaultProvider = ({children})=>{
         // toggleSidePanel: ()=>setView(view=>view==='sidePanel'? 'default' : 'sidePanel'),
         // isNoteEditorVisible: view==='noteEditor',
         // toggleNoteEditor: ()=>setView(view=>view==='noteEditor'? 'default' : 'noteEditor'),
-        view: view,
-        setView : (newView)=>setView(newView),
+        appView: appView,
+        setAppView : (newAppView)=>setAppView(newAppView),
         searchTerm: searchTerm,
         setSearchTerm: (newSearchTerm)=> setSearchTerm(newSearchTerm),
         noteList: noteList,
@@ -122,6 +123,7 @@ const Copi = () => {
                 <SidePanel/>
                 <NoteEditorContainer/>
                 <TagsEditorContainer/>
+                {/* <SearchBarAndNoteList/> */}
                 <SearchBar/>
                 <NoteList/>
                 <BottomBar/>

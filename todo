@@ -15,15 +15,22 @@ Instalacion de cosas:
 4)Long Touch/Press:
     https://github.com/john-doherty/long-press-event
     Baje directamente el archivo: https://github.com/john-doherty/long-press-event/blob/master/dist/long-press-event.min.js
-    Y lo puse en una carpeta "libs" de public, y agregue <script src="libs/long-press-event.min.js"></script> al index.html.  Medio cabeza, a lo mejor hay una mejor manera de hacerlo.  
+    Y lo puse en una carpeta "libs" de public, y agregue <script src="libs/long-press-event.min.js"></script> al index.html.  Medio cabeza, a lo mejor hay una mejor manera de hacerlo.
 
 5)ClipboardJS(el de copiar):(instalado!)
     https://clipboardjs.com/
     npm install clipboard --save 
 
+6) React-Tostify (los mensajitos toast):(instalado!)
+instalacion: npm install --save react-tostify
+https://fkhadra.github.io/react-toastify/installation
+
+
 
 
 Refactoring:
+-El noteCardContainer donde esta arraigado el clipboardJS no debe tener cuerpo (padding y margin y eso en 0) , sino puede copiarse cosas
+sin querer....
 -Ojo cuidado, en muchos lados opero con las notas haciendo ...note (spread operator), y no tengo en cuenta las consecuencias de que los noteTags se van a copiar por ref.
 puede ser peligroso como no. abria que verlo
 -Quiza deberia poner ids automaticos como hice con los tags, requiere que cambie varias cosas en data pero seria mejor.
