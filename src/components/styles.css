@@ -1,4 +1,5 @@
 :root{
+  background-color: white;
   --z-index-side-panel: 2;
   --z-index-note-editor: 2;
   --z-index-bottom-bar: 1;
@@ -6,6 +7,11 @@
   --z-index-modal-background: 7000;
   --z-index-modal: 7001;
   /*Ver bien, porque el DnD tiene como 5000 de z-index, estos quiza deberian arrancar en 6000*/
+}
+
+body {
+  font-family: 'Noto Sans', serif;
+  font-size: 18px;
 }
 
 .modal-background{
@@ -18,6 +24,10 @@
   position:fixed;
 }
 .modal{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 300px;
   height: 200px;
   background-color: white;
@@ -91,6 +101,8 @@
 }
 
 .noteCard{
-  border: 1px solid mediumseagreen;
+  border: 1px solid transparent;
+  border-color: #e0e0e0;
+  border-radius: 8px;
   margin: 6px;
 }

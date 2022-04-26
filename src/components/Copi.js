@@ -18,44 +18,32 @@ export const Context = createContext({
 
 const DefaultProvider = ({children})=>{
     const [appView,setAppView] = useState({view:'default'});//'default'/'tagsEditor'/'sidePanel'/'noteEditor'
-    const [searchTerm,setSearchTerm] = useState(''); //probablemente no se necesite.
+    //const [searchTerm,setSearchTerm] = useState(''); //probablemente no se necesite.
     const [noteList,setNoteList] = useState(null);
     const [noteToEdit,setNoteToEdit] = useState(null);
 
     //init
     useEffect(()=>{
-         //AppData.connect().then( ()=>{ setNoteList(AppData.allNotesCache) }); //<-cambiar x AppData.getNotes()
          AppData.connect().then( ()=>{ setNoteList(AppData.getNotes()) }); 
     },[]);
 
     const value = {
-        // isSidePanelVisible: isSidePanelVisible,
-        // toggleSidePanel: ()=>setSidePanelVisible(!isSidePanelVisible),
-        // isNoteEditorVisible: isNoteEditorVisible,
-        // toggleNoteEditor: ()=>setNoteEditorVisible(!isNoteEditorVisible)  
-        // isTagsEditorVisible: view==='tagsEditor',
-        // toggleTagsEditor: ()=>setView(view=>view==='tagsEditor'? 'default' : 'tagsEditor'),
-        // isSidePanelVisible: view==='sidePanel',
-        // toggleSidePanel: ()=>setView(view=>view==='sidePanel'? 'default' : 'sidePanel'),
-        // isNoteEditorVisible: view==='noteEditor',
-        // toggleNoteEditor: ()=>setView(view=>view==='noteEditor'? 'default' : 'noteEditor'),
         appView: appView,
         setAppView : (newAppView)=>setAppView(newAppView),
-        searchTerm: searchTerm,
-        setSearchTerm: (newSearchTerm)=> setSearchTerm(newSearchTerm),
+        // searchTerm: searchTerm,
+        // setSearchTerm: (newSearchTerm)=> setSearchTerm(newSearchTerm),
         noteList: noteList,
         setNoteList: setNoteList,
         noteToEdit:noteToEdit,
         setNoteToEdit:(note)=> setNoteToEdit(note),
     }
-    //console.log('R. Provider...');
-    //console.log(value);
+
     return ( noteList
         ? <Context.Provider value = {value}> {children} </Context.Provider> 
         : <div>loading....</div>
     );
 }
-
+//appView es un OBJ asi: {view:'tagFiltered'|'default'|'trash' ,tagFilter:12(tagKey), isSelecting:true|false}
 
 /*
 //Tests. Lo de arriba es la posta.
@@ -123,8 +111,8 @@ const Copi = () => {
                 <SidePanel/>
                 <NoteEditorContainer/>
                 <TagsEditorContainer/>
-                {/* <SearchBarAndNoteList/> */}
-                <SearchBar/>
+                {/* <SearchBarAndNoteList/> o bien meter searchBar en NoteList (q seria lo mismo) ????*/}
+                {/* <SearchBar/> */}
                 <NoteList/>
                 <BottomBar/>
             </DefaultProvider>

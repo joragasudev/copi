@@ -38,6 +38,7 @@ class Data{
         this.allTagsCache = []; 
         this.notesOrderCache = [];
         this.notesOrderByTagCache = [];
+        this.MAX_TEXT_LENGTH = 10;
 
         this.fuseOptions = {
             includeScore: true,
@@ -151,7 +152,6 @@ sortNotes(notesArray, orderArray = this.notesOrderCache){
     });
     return [...notesArray];
 } 
-
 sortTags(tagsArray){
     return [...tagsArray.sort((tagA,tagB)=>{
         if(tagA.name < tagB.name)
@@ -161,7 +161,10 @@ sortTags(tagsArray){
         return 0;
     })]; 
 }
-
+truncateText(text){
+    //Se puede usar en CSS overflow:hidden; y text-overflow:ellipsis; y listo.
+    return text.length <= this.MAX_TEXT_LENGTH? text : text.substring(0,this.MAX_TEXT_LENGTH)+'...';
+}
 //-------------NOTES-----------------
 //Save a new note and resolve with the updated allNotesCache
 saveNewNote(newNote) {
@@ -194,10 +197,12 @@ saveNewNote(newNote) {
                 let noteKey = newNoteKey;
                 let notesOrderByTagRequest =  notesOrderByTagObjectStore.get(tagKey);
                 notesOrderByTagRequest.onsuccess = event =>{
-                    let notesOrderByTagArray = event.target.result.value;
+                    let notesOrderByTag = event.target.result;
+                    let notesOrderByTagArray =notesOrderByTag.value; 
                     if (!notesOrderByTagArray.includes(noteKey))
-                        notesOrderByTagArray=[noteKey,...notesOrderByTagArray];
-                    notesOrderByTagObjectStore.put({tagKey:tagKey, value:notesOrderByTagArray});
+                        notesOrderByTagArray=[...notesOrderByTagArray,noteKey];
+                    // notesOrderByTagObjectStore.put({tagKey:tagKey, value:notesOrderByTagArray});
+                    notesOrderByTagObjectStore.put(notesOrderByTag);
                 }  
             }
         }
@@ -217,7 +222,7 @@ saveNewNote(newNote) {
                 if (!newNoteTags.includes(noteOrder.tagKey))
                     return noteOrder;
                 else 
-                    return ( {tagKey:noteOrder.tagKey, value: [newNoteKey,...noteOrder.value]} );
+                    return ( {tagKey:noteOrder.tagKey, value: [...noteOrder.value,newNoteKey]} );
             });
 
             resolve(this.getNotes()); 
@@ -254,7 +259,7 @@ updateNote(noteToUpdate){
                         let notesOrderByTag = event.target.result;
                         if(noteTags.includes(notesOrderByTag.tagKey)){
                             if(!notesOrderByTag.value.includes(key)){
-                                notesOrderByTag = {tagKey:notesOrderByTag.tagKey, value:[key,...notesOrderByTag.value]};
+                                notesOrderByTag = {tagKey:notesOrderByTag.tagKey, value:[...notesOrderByTag.value,key]};
                             }
                         }
                         else{
@@ -284,7 +289,7 @@ updateNote(noteToUpdate){
                     if (noteOrder.value.includes(key)){
                         return noteOrder;
                     }else{
-                        return ( {tagKey:noteOrder.tagKey, value: [key,...noteOrder.value]} ); 
+                        return ( {tagKey:noteOrder.tagKey, value: [...noteOrder.value,key]} ); 
                     }
                 }
                 else{
@@ -306,10 +311,11 @@ sendNoteToTrash(key){
 }
 sendNotesToTrash(keysArray){
     return new Promise((resolve,reject)=>{
-        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME], "readwrite");
+        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME,this.NOTESORDERBYTAG_OBJECTSTORE_NAME], "readwrite");
         let objectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
         let configObjectStore = transaction.objectStore(this.CONFIG_OBJECTSTORE_NAME); 
-        
+        let notesOrderByTagObjectStore = transaction.objectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME); 
+
         keysArray.forEach((key)=>{
             let updateRequest = objectStore.get(key);
             let note = null;
@@ -328,6 +334,20 @@ sendNotesToTrash(keysArray){
             data.value = newNotesOrder; 
             configObjectStore.put(data);
         }
+        //Updating notesOrderByTag 
+        let notesOrderByTagRequestKeys =  notesOrderByTagObjectStore.getAllKeys(); 
+        notesOrderByTagRequestKeys.onsuccess = event =>{
+            let allNotesOrderByTagsKeys = event.target.result;
+            for (let notesOrderByTagKey of allNotesOrderByTagsKeys){
+                let notesOrderByTagRequest =  notesOrderByTagObjectStore.get(notesOrderByTagKey); 
+                notesOrderByTagRequest.onsuccess = event =>{
+                    let notesOrderByTag = event.target.result;
+                    let newNotesOrderByTagValue= notesOrderByTag.value.filter((noteKey)=>!keysArray.includes(noteKey));
+                    notesOrderByTag.value = newNotesOrderByTagValue;
+                    notesOrderByTagObjectStore.put(notesOrderByTag); 
+                }
+            }   
+        }
 
         transaction.onerror = event => {console.log(`ERROR: Fail at sending a note to trash can. ${event}`);};
         transaction.oncomplete = event=>{
@@ -336,7 +356,13 @@ sendNotesToTrash(keysArray){
                 if(keysArray.includes(note.key))
                     return ({...note, state:'trash'});
                 return ({...note});
-            })
+            });
+
+            //updating notesOrderByTagCache
+            this.notesOrderByTagCache = this.notesOrderByTagCache.map((notesOrder)=>{
+                let newNotesOrderValue = notesOrder.value.filter((noteKey)=>!keysArray.includes(noteKey));
+                return ({tagKey:notesOrder.tagKey, value:newNotesOrderValue});
+            });
             resolve(this.getNotes());
         }
     }); 
@@ -379,7 +405,7 @@ sendNoteToTrashViejo(key){
         }
     }); 
 }
-restoreNote(key){
+restoreNoteviejoo(key){
     return new Promise((resolve,reject)=>{
         let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME], "readwrite");
         let objectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
@@ -396,7 +422,6 @@ restoreNote(key){
 
         let requestNotesOrderConfig = configObjectStore.get('notesOrder');
         let newNotesOrder = [key,...this.notesOrderCache];
-
         requestNotesOrderConfig.onsuccess = event=>{
             let data = event.target.result;
             data.value = newNotesOrder; 
@@ -411,6 +436,84 @@ restoreNote(key){
             this.allNotesCache[noteIndex].state = 'listed';
             this.allNotesCache = [...this.allNotesCache];
             
+            resolve(this.getTrashedNotes());
+        }
+    }); 
+}
+restoreNote(key){
+    return this.restoreNotes([key]);
+}
+restoreNotes(keysArray){
+    return new Promise((resolve,reject)=>{
+        let transaction = this.DBConecction.transaction([this.NOTES_OBJECTSTORE_NAME,this.CONFIG_OBJECTSTORE_NAME,this.NOTESORDERBYTAG_OBJECTSTORE_NAME], "readwrite");
+        let objectStore = transaction.objectStore(this.NOTES_OBJECTSTORE_NAME); 
+        let configObjectStore = transaction.objectStore(this.CONFIG_OBJECTSTORE_NAME); 
+        let notesOrderByTagObjectStore = transaction.objectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME);
+       
+        keysArray.forEach((key)=>{
+            let updateRequest = objectStore.get(key);
+            let note = null;
+            updateRequest.onsuccess = event =>{
+                note = event.target.result;
+                note.state = 'listed';
+                //note.lastModifyDate = Date.now();
+                objectStore.put(note,key);
+            }
+        });
+
+        let requestNotesOrderConfig = configObjectStore.get('notesOrder');
+        let newNotesOrder = [...this.notesOrderCache,...keysArray];
+        requestNotesOrderConfig.onsuccess = event=>{
+            let data = event.target.result;
+            data.value = newNotesOrder; 
+            configObjectStore.put(data);
+        }
+
+        //{tagKey1: [noteKey45, noteKey64], tagKey22:[noteKey64], ...}
+        const notesOrderByTagToUpdate = keysArray.reduce ((acc,noteKey)=>{
+            const note = this.allNotesCache.find((aNote)=>aNote.key === noteKey);
+            const noteTags = note.noteTags;
+
+            for (let tagKey of noteTags){
+                acc = acc[tagKey]? {...acc,[tagKey]:[noteKey,...acc[tagKey]]} : {...acc, [tagKey]:[noteKey]} ;
+            }
+            return {...acc};
+        },{});
+
+        console.log(notesOrderByTagToUpdate);
+        //Updating notesOrderByTag 
+        for (const tagKey in notesOrderByTagToUpdate){
+            let notesOrderByTagRequest =  notesOrderByTagObjectStore.get(parseInt(tagKey)); 
+            notesOrderByTagRequest.onsuccess = event=>{
+                let notesOrderByTag = event.target.result; 
+                notesOrderByTag.value = [...notesOrderByTag.value,...notesOrderByTagToUpdate[tagKey]];
+                notesOrderByTagObjectStore.put(notesOrderByTag); 
+            }
+        }
+
+        transaction.onerror = event => {console.log(`ERROR: Fail at restoring notes from the trash can. ${event}`);};
+        transaction.oncomplete = event=>{
+            this.notesOrderCache = [...newNotesOrder];
+            //update allNotesCache
+            this.allNotesCache = this.allNotesCache.map((note)=>{
+                if(keysArray.includes(note.key))
+                    return {...note, state:'listed'};
+                else
+                    return note;
+            });
+
+            //updating notesOrderByTagCache
+            const tagsToUpdate = Object.keys(notesOrderByTagToUpdate).map((tagKeyString)=>parseInt(tagKeyString)); 
+            console.log("tagsToUpdate",tagsToUpdate);
+
+            this.notesOrderByTagCache = this.notesOrderByTagCache.map((notesOrder)=>{
+                if (tagsToUpdate.includes(notesOrder.tagKey)){
+                    let newNotesOrderValue = [...notesOrder.value,...notesOrderByTagToUpdate[(notesOrder.tagKey)]];
+                    return ({tagKey:notesOrder.tagKey, value:newNotesOrderValue});
+                }
+                return notesOrder;
+            });
+
             resolve(this.getTrashedNotes());
         }
     }); 
@@ -460,7 +563,7 @@ deleteNotes(keysArray){
             this.allNotesCache = this.allNotesCache.filter((note)=>{
                 return !keysArray.includes(note.key);
             })
-
+            //updating notesOrderByTagCache
             this.notesOrderByTagCache = this.notesOrderByTagCache.map((notesOrder)=>{
                 let newNotesOrderValue = notesOrder.value.filter((noteKey)=>!keysArray.includes(noteKey));
                 return ({tagKey:notesOrder.tagKey, value:newNotesOrderValue});
@@ -494,7 +597,6 @@ getNotes(){
     return this.sortNotes(nonDeletedNotes);
 }
 getNotesFilteredByTag(tagKey){
-    console.log(tagKey,this.notesOrderByTagCache);
     const orderArray = this.notesOrderByTagCache.find((notesOrder)=>notesOrder.tagKey === tagKey).value;
     const notesFilteredByTag = this.allNotesCache.filter((note)=>{ return (note.state==='listed' && note.noteTags.includes(tagKey));});
     return this.sortNotes(notesFilteredByTag,orderArray);
@@ -591,21 +693,25 @@ reorderNotesViejo (sourceIndex,destinationIndex){
 }
 
 //Search with Fuse.
-searchNotes(term, view = 'default'){
+searchNotes(term, appView){
     term = term.trim();
     if (term===''){
-        if (view === 'default')
+        if (appView.view === 'default')
             return (this.getNotes());
-        if (view === 'trash')
+        if (appView.view === 'trash')
             return (this.getTrashedNotes());
+        if (appView.view === 'tagFiltered')
+            return (this.getNotesFilteredByTag(appView.tagFilter)); //Como saco el appView.tagFilter?
     }
 
     const result = this.fuse.search(term);
     const notesResult = result.map((result)=>result.item);
-    if (view === 'default')
-            return ( notesResult.filter((note)=> note.state === 'listed') );
-    if (view === 'trash')
-            return ( notesResult.filter((note)=> note.state === 'trash') );
+    if (appView.view === 'default')
+            return  notesResult.filter((note)=> note.state === 'listed') ;
+    if (appView.view === 'trash')
+            return  notesResult.filter((note)=> note.state === 'trash') ;
+    if (appView.view === 'tagFiltered')
+            return  notesResult.filter((note)=> note.noteTags.includes(appView.tagFilter) && note.state === 'listed') ;
 
     return notesResult;
 }
@@ -707,7 +813,6 @@ deleteTags(tagsToDelete){//tagToDelete contiene las keys de los tags a eliminar 
             this.allTagsCache = this.sortTags(this.allTagsCache.filter((tag)=>!tagsKeysToDelete.includes(tag.key)));
 
             this.notesOrderByTagCache = this.notesOrderByTagCache.filter((notesOrder)=>!tagsKeysToDelete.includes(notesOrder.tagKey));
-            console.log("this.notesOrderByTagCache en borrar tags:", this.notesOrderByTagCache);
             resolve();
         }
     });

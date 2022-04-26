@@ -10,7 +10,7 @@ const TagList=(props)=>{
         allTags.map((tag)=>{
             return(
                 <div key={tag.key} className="tag-filter-container">
-                    <p onClick={()=>{clickTagHandler(tag.key)}}>{tag.name}</p>
+                    <p onClick={()=>{clickTagHandler(tag.key)}}>{AppData.truncateText(tag.name)}</p>
                 </div>
             )}
         )
@@ -24,17 +24,16 @@ const SidePanel = ()=>{
         //const notesFilteredByTag = AppData.getNotes().filter((note)=>{ return (note.noteTags.includes(tagKey));});
         const notesFilteredByTag = AppData.getNotesFilteredByTag(tagKey);
         setNoteList(notesFilteredByTag);
-        setAppView({view:'tagFiltered', tagFilter:tagKey});
+        setAppView({...appView,view:'tagFiltered', tagFilter:tagKey});
     }
 
     return(
         <div className={`side-panel ${(appView.view==='sidePanel')?'side-panel-show' : ''}`} onClick={()=>{/*setView('default');*/}}>
             Side panel
-            <button onClick={(e)=>{setAppView({view:'tagsEditor'});e.stopPropagation();}}>Editar</button>
-            {/* <button onClick={()=>{setNoteList(AppData.allNotesCache);}}>Todas</button> */}
-            <button onClick={()=>{setAppView({view:'default'}); setNoteList(AppData.getNotes());}}>Todas</button>
-            <button onClick={()=>{setAppView({view:'trash'}); setNoteList(AppData.getTrashedNotes());}}>TrashCan</button>
+            <button onClick={()=>{setAppView({...appView,view:'default'}); setNoteList(AppData.getNotes());}}>Todas</button>
             <TagList clickTagHandler={clickTagHandler}/>
+            <button onClick={()=>{setAppView({...appView,view:'trash'}); setNoteList(AppData.getTrashedNotes());}}>TrashCan</button>
+            <button onClick={(e)=>{setAppView({...appView,view:'tagsEditor'});e.stopPropagation();}}>Edit Tags</button>
         </div>
     );
 }

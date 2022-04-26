@@ -7,6 +7,7 @@ import { DragDropContext } from "react-beautiful-dnd";
 import { Droppable } from "react-beautiful-dnd";
 import { Draggable } from "react-beautiful-dnd";
 import { AppData } from "../data/Data2";
+import SearchBar from "./SearchBar";
 //NoteList deberia ser el padre de una serie de Componentes Memoizados con memo (los de la lista).
 
 const NoteCard = memo((props) =>{
@@ -61,51 +62,20 @@ const NoteCard = memo((props) =>{
         <p>{note.title}</p>
         <p>{note.text}</p>
 
-        {/* {view==='default'?<button onClick={(e)=>{console.log(note); setNoteToEdit(note); setView('noteEditor'); e.stopPropagation();}}>E</button>:null} */}
-        {appView.view==='default'?<button onClick={(e)=>{openNoteEditor(e,note)}}>E</button>:null}
-
-        {appView.view==='default'?<button onClick={(e)=>{
-            AppData.sendNoteToTrash(note.key).then((noteList)=>{setNoteList(noteList );});
-            e.stopPropagation();
-            }}>D</button>
-        :null}
-
-        {note.state==='trash'? <button onClick={(e)=>{
-            AppData.restoreNote(note.key).then((trashedNotes)=>{
-                setNoteList(trashedNotes);
-            })
-            e.stopPropagation();
-            }
-            }>Restore</button>
-        :null}
-
-        {note.state==='trash'? <button onClick={(e)=>{
-            AppData.deleteNote(note.key).then((trashedNotes)=>{
-                setNoteList(trashedNotes);
-            })
-            e.stopPropagation();
-            }
-            }>asesinar</button>
-        :null}
-
-        {/* <ToastContainer /> */}
     </div>
     );
 });
 
-
 const ListContent = memo((props) => {
-    const {noteList,isDragDisabled} = props;
-    const [selectedNotesKeys,setSelectedNotesKeys] = useState([]);
+    const {noteList,isDragDisabled,selectedNotesKeys,setSelectedNotesKeys} = props;
+    //const [selectedNotesKeys,setSelectedNotesKeys] = useState([]);
     const {appView,setAppView} = useContext(Context);
 
-    console.log("selectedNotesKeys:", selectedNotesKeys);
-
     //esto esta medio feo (renderiza 2 veces.)
-    useEffect(()=>{
-        if(!appView.isSelecting)
-            setSelectedNotesKeys([]);
-    },[appView]);
+    // useEffect(()=>{
+    //     if(!appView.isSelecting)
+    //         setSelectedNotesKeys([]);
+    // },[appView]);
 
     const selectANote = (noteKey)=>{//(toggle)
         selectedNotesKeys.includes(noteKey)
@@ -145,33 +115,83 @@ const ListContent = memo((props) => {
 })
 
 const NoteList = () =>{
-    const {noteList,setNoteList,appView} = useContext(Context);
-    console.log(appView);
+    const [selectedNotesKeys,setSelectedNotesKeys] = useState([]);
+    const {noteList,setNoteList,appView,setAppView} = useContext(Context);
+    
+    const sendNotesToTrashHandler = ()=>{
+        AppData.sendNotesToTrash(selectedNotesKeys).then((notesList)=>{
+            setAppView({...appView,view:'default'});
+            setNoteList(notesList);
+            setSelectedNotesKeys([]);
+        });
+    }
+    const sendNotesInTagsToTrashHandler = ()=>{
+        AppData.sendNotesToTrash(selectedNotesKeys).then((notesList)=>{
+            setAppView({...appView,view:'tagFiltered'});
+            setNoteList(AppData.getNotesFilteredByTag(appView.tagFilter));
+            setSelectedNotesKeys([]);
+        });
+    }
+    const deleteNotesHandler = ()=>{
+        AppData.deleteNotes(selectedNotesKeys).then((notesInTrash)=>{
+            setAppView({...appView,view:'trash'});
+            setNoteList(notesInTrash);
+            setSelectedNotesKeys([]);
+        });
+    }
+    const restoreNotesHandler = ()=>{
+        AppData.restoreNotes(selectedNotesKeys).then((notesInTrash)=>{
+            setAppView({...appView,view:'trash'}); 
+            setNoteList(notesInTrash);
+            setSelectedNotesKeys([]);
+        }); 
+    }
+    
+    const clearSelection = ()=>{
+        setSelectedNotesKeys([]);
+    }
+    
     if (!noteList.length)
-        return (<div>No hay notas</div>);
+        return (<>
+            <SearchBar sendNotesToTrashHandler={sendNotesToTrashHandler} clearSelection={clearSelection}/>
+            <div>No hay notas</div>
+            </>
+        );
 
     return(
+        <>
+        <SearchBar 
+            sendNotesToTrashHandler={sendNotesToTrashHandler}
+            sendNotesInTagsToTrashHandler = {sendNotesInTagsToTrashHandler}
+            deleteNotesHandler = {deleteNotesHandler}
+            restoreNotesHandler = {restoreNotesHandler}
+            clearSelection={clearSelection}
+            />
+
         <DragDropContext onDragEnd={(dragEndObject)=>{ //DRAG HANDLER
             if (dragEndObject.destination != null){
                 const sourceKey = noteList[dragEndObject.source.index].key;
                 const destinationKey = noteList[dragEndObject.destination.index].key;
-                //Yo tendria que dejar mover las notas que estan x tags, y tambien se tendrian que guardar en ese orden....
-                //esto implicaria un par de quilombos, pero seria lo ideal a nivel funcional...
                 if (appView.view === 'tagFiltered')
                     setNoteList(AppData.reorderNotesFilteredByTag(sourceKey,destinationKey,appView.tagFilter));
                 else
                     setNoteList(AppData.reorderNotes(sourceKey,destinationKey));
         }}}>
             <Droppable droppableId='droppeable-1'>
-            {(provided,snapshot)=> (
-                <div className='listContainer' ref={provided.innerRef} {...provided.droppableProps}>
-                    <ListContent noteList={noteList} isDragDisabled={appView.view!=='default' && appView.view!=='tagFiltered'}/>
-                    {/* A lo mejor tendria que crear un flagsito o un objeto state, para saber en que lista estamos y deshabilitar el drag. */}
-                    {provided.placeholder}
-                </div>
-            )}
+                {(provided,snapshot)=> (
+                    <div className='listContainer' ref={provided.innerRef} {...provided.droppableProps}>
+                        <ListContent 
+                            noteList={noteList}
+                            isDragDisabled={appView.view!=='default' && appView.view!=='tagFiltered'}
+                            selectedNotesKeys = {selectedNotesKeys}
+                            setSelectedNotesKeys = {setSelectedNotesKeys}
+                        />
+                        {provided.placeholder}
+                    </div>
+                )}
             </Droppable>
         </DragDropContext>
+        </>
     )
 }
 

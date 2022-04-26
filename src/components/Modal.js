@@ -1,5 +1,3 @@
-
-
 const ModalBackground = (props)=>{
     const {cancelHandler} = props;
 return (

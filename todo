@@ -26,24 +26,17 @@ instalacion: npm install --save react-tostify
 https://fkhadra.github.io/react-toastify/installation
 
 
-
+IMPORTANTE: Poner en el github una vez subido algo como: Descripcion del proy, y luego algo como "Echo para practicar mis primeros pasos en react
+y indexedDB". (tambien hacer esto en el otro proy.)
+o algo asi. Tambien poner en la clase Data, que :"tiene mucho boilerplate, se deberia usar un wrapper como x y z"
 
 Refactoring:
 -El noteCardContainer donde esta arraigado el clipboardJS no debe tener cuerpo (padding y margin y eso en 0) , sino puede copiarse cosas
 sin querer....
 -Ojo cuidado, en muchos lados opero con las notas haciendo ...note (spread operator), y no tengo en cuenta las consecuencias de que los noteTags se van a copiar por ref.
 puede ser peligroso como no. abria que verlo
--Quiza deberia poner ids automaticos como hice con los tags, requiere que cambie varias cosas en data pero seria mejor.
--agregar q cdo se aplique el filtro de tag no se pueda dragear.
--Conditional rendering en el nivel mas alto de la jerarquia (ej para q renderizar noteEditor si no se usa) ? ver como funciona bien Context (q renders dispara)
--a lo mejor reordeno de mas, cuando llamo a getAllNotes.
 -cambiar <divs> por <></>
 -<Suspense> es para generar algo mientras se espera por otra cosa, los tipicos placeholders...
--Cambiar el modo de clipboard.js porque las "data-" atributos de HTML pueden tener limite en algunos browsers.
--Ver si me combiene tener la clase "Data" con sus metedos ahi.
--Evaluar como seria la mejor forma de representar los datos de las notas. (un arreglo? un hashmap? una hashtable?). Supongo que para hacerlo rapido me basta con un arreglo pocho y ineficiente.
-Para esto tendria que Evaluar cual seria el requerimiento que mas velocidad precise (quiza la busqueda de la nota en la estructura).
--La busqueda con fuse, deberia tener un pequenio delay 100ms? (para no ejecutar al dope de mas)
 -Como hacer para que el campo de Search no te muestre las busquedas anteriores/deotro lado.
 
 Averiguar
@@ -54,10 +47,8 @@ Averiguar
 
 
 MVP/ Requerimientos / definiciones:
--Con single click o single Tap, se copia la nota.
--CRUD de Notas. (Create(DONE)/Read(DONE)/Update(DONE)/Delete)
--CRUD de Tags. (Create(DONE)/Read(DONE)/Update/Delete)
--Mover Las notas.
--Con long tap se abre la nota para editarla?. (VER como evitar que un long click/tap, tambien sea un single click/tap (ya lo vi esto ver e.stopPropagation()))
--Para mover las notas? apretar un boton y que jiggleen?
--Para eliminar/enviar a papelera? 
+-Con single click o single Tap, se copia la nota(DONE).
+-CRUD de Notas. (Create(DONE)/Read(DONE)/Update(DONE)/Delete(DONE))
+-CRUD de Tags. (Create(DONE)/Read(DONE)/Update(DONE)/Delete(DONE))
+-Mover Las notas(DONE).
+-Con long tap se abre la nota para editarla?. (DONE)

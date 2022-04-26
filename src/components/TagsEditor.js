@@ -106,12 +106,10 @@ const tagsChangerReducer = (changesActions,action)=> {
 let localKeyId = 0; //Id negativas que se usan provisoriamente para los nuevos tags creados en esta pantalla....
 
 const TagsEditor=()=>{
-        const {setAppView} = useContext(Context);
+        const {setAppView,appView,setNoteList} = useContext(Context);
         const [allTagsLocal,setAllTagsLocal] = useState(AppData.allTagsCache); // { [{key:0, name:'cocina'},{key:10, name:'perros},...]
         const [tagsChanges,dispatchTagsChanges] = useReducer(tagsChangerReducer,[]);
         const [modalView,setModalView] = useState({show:false});
-        
-        console.log(tagsChanges);
         
         const updateTagNameHandler = (localTag,newTagName)=>{
             dispatchTagsChanges({type:'update', payload:{...localTag, name:newTagName}}); //{type:'update' , payload:{{key:2,name:'newName'}} }
@@ -130,7 +128,11 @@ const TagsEditor=()=>{
         }
         const saveChangesHandler = ()=>{
             //Aca tendria que checkear que todos los 'name' sean distintos... (con la treta de new Set(tagsChanges))
-            AppData.applyTagsChanges(tagsChanges).then((r)=>console.log('Se ejecutaron todos los cambios en tags...'));
+            AppData.applyTagsChanges(tagsChanges).then((r)=>{
+                setAppView({...appView,view:'default'});
+                setNoteList(AppData.getNotes());
+            });
+                
         }
         const closeModal=()=>{
             setModalView({show:false});
@@ -155,8 +157,8 @@ const TagsEditor=()=>{
             :null}
 
             <button onClick={()=>{setAppView({view:'default'})}}>Cancelar</button>
-            <button onClick={()=>{saveChangesHandler(); setAppView({view:'default'})}} disabled={shouldDisableSaveButton()}>Save Changes</button>
             <TagInputCreator saveTagHandler={createNewTagHandler} allTags={allTagsLocal}/>
+            <button onClick={()=>{saveChangesHandler(); setAppView({view:'default'})}} disabled={shouldDisableSaveButton()}>Save Changes</button>
 
             {
                 allTagsLocal.map((tag)=>{
