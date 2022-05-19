@@ -1,19 +1,32 @@
 :root{
   background-color: white;
-  --z-index-side-panel: 2;
-  --z-index-note-editor: 2;
-  --z-index-bottom-bar: 1;
-  --z-index-tags-editor-container: 3;
+  --z-index-side-panel: 7002;
+  --z-index-note-editor: 6002;
+  --z-index-bottom-bar: 6001;
+  --z-index-tags-editor-container: 7003;
+  --z-index-add-note-button: 6000;
   --z-index-modal-background: 7000;
   --z-index-modal: 7001;
   /*Ver bien, porque el DnD tiene como 5000 de z-index, estos quiza deberian arrancar en 6000*/
 }
-
+html{
+  height: 100vh;
+}
 body {
   font-family: 'Noto Sans', serif;
   font-size: 18px;
+  height:100vh;
 }
 
+
+.ellipsis{ /* REEMPLAZAR POR ESTO!*/
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: block; 
+}
+
+/* Modal */
 .modal-background{
   z-index: var(--z-index-modal-background);
   background: rgba(10,10,10,0.6);
@@ -33,11 +46,187 @@ body {
   background-color: white;
   z-index: var(--z-index-modal); 
   position:fixed;
+  border-radius: 12px;
+}
+.modalHelp{
+  width: 350px;
+  height: 260px;
+}
+.modal__buttonsBar{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  margin:2px 25px 2px 25px;
+}
+.modal__buttonBar--center{
+  justify-content: center;
+}
+.modal__text{
+  font-size: 1.6rem;
+  flex-grow: 1;
+  text-align: center;
+  overflow: scroll;
+}
+.modal__container{
+  display:flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+.helpModal__textContainer{
+  display:flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.tag-filter-container{
-  display: flex;
+
+.listTitle{
+  font-size: 0.85rem;
+  margin: 0px 0px 0px 8px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: block;
 }
+
+/*NoteEditor*/
+.note-editor{
+  height: 100%;
+  width: 0px;
+  position: fixed;
+  z-index: var(--z-index-note-editor);
+  top: 0;
+  right: 0;
+  background-color: white;
+  overflow-x: hidden;
+  transition: 0.1s;
+}
+.note-editor-show{
+  width: 100%;
+}
+.note-editor-container{
+  display:flex;
+  width: auto;
+  height: 100%;
+  flex-direction: column;
+}
+.topButtonsBar{
+  display: flex;
+  width: auto;
+}
+.titleInput{
+  font-family: 'Noto Sans', serif;
+  font-size: 1.2rem;
+  border:none;
+  border-bottom: 1px solid #cccc;
+  margin-bottom: 2px;
+  width: auto;
+  margin: 4px;
+}
+.textInput{
+  resize: none;
+  font-family: 'Noto Sans', serif;
+  font-size: 0.9rem;
+  border:none;
+  border-bottom: 1px solid #cccc;
+  margin-bottom: 2px;
+  width: auto;
+  height: auto;
+  margin: 4px;
+  flex-grow: 1;
+}
+.textInput:focus{
+  outline: none;
+}
+.tagBubbleContainer{
+  display:inline-block;
+  margin:1px 3px 1px 3px;
+  padding:0px 2px 0px 2px;
+  border-radius: 4px;
+  background-color: lightgray;
+  font-size: 1rem;
+  font-weight: lighter;
+  width: clamp(50px,100%,100px);
+}
+.tagBubble{
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+}
+.tagBubbleText{
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: block;
+}
+
+
+/*TagsEditor*/
+.title-container {
+  margin-top: 4px;
+  display: grid; 
+  grid-template-columns: 1fr 5fr 1fr; 
+  grid-template-rows: 1fr; 
+  gap: 0px 0px; 
+  grid-template-areas: 
+    ". . ."; 
+}
+.tag-add-container{
+  margin: 0px 8px 0px 12px;
+  display: flex;
+  align-items:center;
+  justify-content: flex-end;
+  width: auto; 
+}
+.tag-list-item{
+  margin: 0px 8px 0px 8px;
+  display: flex;
+  align-items:center;
+  width: auto; 
+}
+.tag-add-input{
+    font-family: 'Noto Sans', serif;
+    border:none;
+    border-bottom: 1px solid #cccc;
+    margin-bottom: 2px;
+    width: clamp(80px,100%,100%);
+}
+.tag-add-input:focus{
+  outline: none;
+}
+/*NOTE TAGS Editor*/
+
+.note-tag-container{
+  margin: 4px 8px 4px 8px;
+  display: flex;
+  align-items:center;
+  justify-content: space-between;
+  width: auto;  
+}
+
+
+
+.side-panel-item-container{
+  margin: 0px 80px 0px 8px;
+  display: flex;
+  align-items:center;
+  width: 100%;
+}
+.side-panel-item-text{
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 1rem;
+  font-weight: bold;
+  display:block; 
+}
+.tag-filter-name{
+  font-size: 0.85rem;
+  width: 50%;
+  font-weight:lighter;
+}
+
 .tag-filter-input{
   flex: 1 1 auto;
   width: 40px;
@@ -47,19 +236,32 @@ body {
 }
 
 .side-panel{
-    height: 100%;
-    width: 0px;
-    position: fixed;
-    z-index: var(--z-index-side-panel);
-    top: 0;
-    left: 0;
-    background-color: red;
-    overflow-x: hidden;
-    transition: 0.3s;
-  }
-.side-panel-show{
-  width: 100px;
+  height: 100%;
+  width: 0px;
+  position: fixed;
+  z-index: var(--z-index-side-panel);
+  top: 0;
+  left: 0;
+  background-color: white;
+  overflow-x: hidden;
+  transition: 0.3s;
 }
+.side-panel-show{
+  width: 80%;
+}
+hr {
+  margin: 0px 10px 0px 10px;
+  display: block;
+  unicode-bidi: isolate;
+  margin-block-start: 0.5em;
+  margin-block-end: 0.5em;
+
+  overflow: hidden;
+  border-style: inset;
+  border-width: 1px;
+}
+
+
 .tags-editor-container{
   height: 100%;
   width: 100%;
@@ -67,42 +269,139 @@ body {
   z-index: var(--z-index-tags-editor-container);
   top: 0;
   right: 0;
-  background-color: orange;
+  background-color: white;
   overflow-x: hidden;
   transition: 0.1s;
 }
 .tags-editor-container-show{
   width: 100%;/*no lo estoy usando ahora...*/
 }
-.note-editor{
-  height: 100%;
-  width: 0px;
-  position: fixed;
-  z-index: var(--z-index-note-editor);
-  top: 0;
-  right: 0;
-  background-color: yellow;
-  overflow-x: hidden;
-  transition: 0.1s;
-}
-.note-editor-show{
-  width: 100%;
-}
-.bottom-bar{
-  background-color: orange;
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  z-index:var(--z-index-bottom-bar);
-  display:flex;	
-  height:50px;
-  box-shadow: 0 -2px 5px -2px #333;
-}
 
 .noteCard{
   border: 1px solid transparent;
   border-color: #e0e0e0;
   border-radius: 8px;
-  margin: 6px;
 }
+.note-card-container{
+  /* border: 1px solid transparent; */
+  border-radius: 8px;
+  padding: 6px;
+  border-color: #e0e0e0;
+}
+.noteCardColorWhite{
+  background-color: white;
+}
+.noteCard-title-container{
+  padding: 16px 16px 0px 16px;
+  font-weight: bold;
+  font-size: 1rem;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.noteCard-text-container{
+  margin: 4px 16px 12px 16px;
+  font-size: .875rem;
+  height: 3.6rem;
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+}
+/* creo que .bottom-bar no se usa mas.... */
+.bottom-bar{
+  background-color: orange;
+  position:fixed;
+  bottom:0vh;
+  left:0;
+  right:0;
+  z-index:var(--z-index-bottom-bar);
+  display:flex;	
+  height:50px;
+  box-shadow:3px 3px 8px -2px #333;
+}
+.btn-circle{
+  position:fixed;
+  background-color: white;
+  bottom:1%;
+  right:5%;
+  width: 70px;
+  height: 70px;
+  border-radius: 35px;
+  font-size: 12px;
+  text-align: center;
+  z-index: var(--z-index-add-note-button);
+  box-shadow: 0 -2px 5px -2px #333;
+}
+.addIcon{
+  transform: translate(0%,0%);
+  z-index: var(--z-index-tags-editor-container);
+}
+
+
+.mainScreen{
+  background-color:white; 
+  height:100vh;
+  /*display:flex;*/
+  justify-content:space-between;
+  flex-direction:column;
+}
+
+
+
+.search-bar{
+  border-radius: 8px;
+  box-shadow: 0px 1px 5px -2px #333; 
+  margin: 12px 16px 12px 16px;
+  height: 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.search-input{
+  font-family: 'Noto Sans', serif;
+  border:none;
+  border-bottom: 1px solid #cccc;
+  margin-bottom: 2px;
+  width: clamp(80px,100%,150px);
+}
+.input-margin{
+  margin-left: 8px;
+  margin-right: 8px;
+}
+.search-input:focus{
+  outline: none;
+}
+
+.svgIconButton{
+  background-color: transparent;
+  border: none;
+  padding: 0px;
+}
+.svgIcon:active{
+  background-color: rgb(223, 223, 223);
+}
+.svgIcon{
+  background-color: transparent;
+  height: 2rem;
+  width: 2rem;
+  filter:opacity(100%);
+  transition: filter 0.3s ease;
+  border-radius: 6px;
+}
+.svgIcon-margin{
+  margin: 0px 4px 0px 4px; 
+}
+.svgIcon-disabled{
+  filter:opacity(20%);
+}
+.svgIcon-hide{
+  filter:opacity(0%);
+}
+.middleSearchBar{
+  display:flex;
+}
+

@@ -5,9 +5,10 @@ import {AppData} from "../data/Data2";
 
 const NoteTagsEditor = memo((props)=>{
     console.log('TagsEditor rendering...');
-    const {note,saveNoteTagsHandler,showTagsEditorHandler} = props;
-    const [thisNoteTags,setThisNoteTags] = useState(note? note.noteTags : []);//[1,2,55,74]
+    const {/*note*/noteTags,saveNoteTagsHandler,showTagsEditorHandler} = props;
+    const [thisNoteTags,setThisNoteTags] = useState(noteTags);//[1,2,55,74]
     const [filteredTagsAvailable,setFilteredTagsAvailable] = useState(AppData.allTagsCache);//[{id:74, tagName:'X'}]
+    const [term,setTerm] = useState('')
     
     //Esto evita que quede la info de otra nota abierta anteriormente. NO hace falta si TagsEditor se destruye cada vez q se cierra.
     // const noteTags = useMemo(()=> note? note.noteTags : [] ,[note]);
@@ -16,6 +17,7 @@ const NoteTagsEditor = memo((props)=>{
     // },[noteTags]);
 
     const filterChangeHandler = (term)=>{
+        setTerm(term);
         if(term.trim() ==='')
             return (setFilteredTagsAvailable(AppData.allTagsCache));
 
@@ -40,11 +42,33 @@ const NoteTagsEditor = memo((props)=>{
         saveNoteTagsHandler([...thisNoteTags]);
     }
 
+    const didTagAlreadyExist = (term)=>{
+        const tagsWithSameNameAsTerm = AppData.allTagsCache.filter((tag)=>{
+            const termNormalized = term.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+            const tagNormalized = tag.name.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+            return (tagNormalized === termNormalized);
+        });
+        return (tagsWithSameNameAsTerm.length > 0);
+    }
+    
     return(
         <div className="tags-editor-container"> 
-            <TagFilter filterChangeHandler = {filterChangeHandler} showCreateTagButton={(filteredTagsAvailable.length===0)}/>
-            <button onClick={()=>{saveButtonHandler(); showTagsEditorHandler(false);}}>Aceptar</button>
-            <button onClick={()=>{showTagsEditorHandler(false)}}>Cancelar</button>
+            {/* Titulo y boton <- */}
+            <div className="title-container">
+                <button className="svgIconButton" onClick={()=>{saveButtonHandler(); showTagsEditorHandler(false);}}  >
+                    <img className={`svgIcon svgIcon-margin `} src="/assets/arrow_back.svg" alt="back" />
+                </button>
+                <div className="side-panel-item-text" style={ {display:"flex", justifyContent:"center", fontSize:"1.4rem" }} >Edit note tags</div>
+            </div>
+
+            <hr/>
+            
+            {/* Filtro de tags */}
+            <TagFilter filterChangeHandler = {filterChangeHandler} showCreateTagButton={(!didTagAlreadyExist(term) && (term!==''))}/>
+
+            <hr/>
+
+            {/* Tags con sus checkboxes */}
             {filteredTagsAvailable.map((tag)=>{ //HHH
                 return <CheckBoxTag key={tag.key} tagName={tag.name} tagKey={tag.key} isChecked={thisNoteTags.includes(tag.key)} handleChange={checkBoxesHandleChange}/>
             })}
@@ -55,15 +79,19 @@ const NoteTagsEditor = memo((props)=>{
 const CheckBoxTag = (props)=>{
     const {tagName,tagKey,isChecked,handleChange} = props;
     return (
-    <>
-        <p>{tagName}</p>
+    <div className="note-tag-container">
+
+        <img className="svgIcon" src="/assets/label.svg" alt="label" />
+
+        <div style={{flexGrow:8}}className="side-panel-item-text tag-filter-name">{tagName}</div>
+
         <input type ='checkbox' 
         name={tagName}
         onChange = {handleChange}
         checked={isChecked}
         value={tagKey}
         />
-    </> 
+    </div> 
     )
 }
 
@@ -79,11 +107,21 @@ const TagFilter = (props)=>{
     }
     return(
         <>
-            <input id="searchTags" type='text' name='searchTags' onChange={(e)=>{
-                filterChangeHandler(e.target.value);
-                setTerm(e.target.value);
-            }}/>
-            {showCreateTagButton? <button onClick={()=>{addTagHandler(term)}}>{`Crear tag:${term}`}</button>:null}
+            
+            <div className="tag-add-container">
+                <input className="tag-add-input" id="searchTags" type='text' name='searchTags' onChange={(e)=>{
+                    filterChangeHandler(e.target.value);
+                    setTerm(e.target.value);
+                }}/>
+                <button className="svgIconButton" onClick={()=>{document.getElementById("searchTags").focus();}}>
+                    <img className="svgIcon svgIcon-margin" src={"assets/search.svg"} alt="magGlass" />
+                </button>
+                <button className="svgIconButton" onClick={()=>{addTagHandler(term)}} disabled={!showCreateTagButton}> 
+                    <img className= {`svgIcon svgIcon-margin ${!showCreateTagButton?'svgIcon-disabled':''}`} src="/assets/add.svg" alt="addtag" />
+                </button>
+            </div>
+            
+            {/* {showCreateTagButton? <button onClick={()=>{addTagHandler(term)}}>{`Crear tag:${term}`}</button>:null} */}
         </>
     )
 }

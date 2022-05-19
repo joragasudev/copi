@@ -161,9 +161,10 @@ sortTags(tagsArray){
         return 0;
     })]; 
 }
-truncateText(text){
+truncateText(text,max){
     //Se puede usar en CSS overflow:hidden; y text-overflow:ellipsis; y listo.
-    return text.length <= this.MAX_TEXT_LENGTH? text : text.substring(0,this.MAX_TEXT_LENGTH)+'...';
+    let maxLength = max? max : this.MAX_TEXT_LENGTH;
+    return text.length <= maxLength? text : text.substring(0,maxLength)+'...';
 }
 //-------------NOTES-----------------
 //Save a new note and resolve with the updated allNotesCache
@@ -870,6 +871,14 @@ getTagsByIds(tagArray = null){
     const filteredTags = this.allTagsCache.filter( tag=>tagArray.includes(tag.key) )
     return filteredTags;
 }
+getTagName(key){
+    const theTag = this.allTagsCache.find((tag)=>tag.key === key);
+    return theTag.name;
+}
+existTagWithKey(key){
+    const theTag = this.allTagsCache.find((tag)=>tag.key === key);
+    return theTag!==undefined;
+}
 
 
 }//end class Data
@@ -915,3 +924,11 @@ clipboard.on('error', function(e) {
     console.error('Trigger:', e.trigger);
 });
 ////////////////////CLIPBOARDJS///////////////////////////////////
+/*
+window.addEventListener('resize', () => {
+    // We execute the same script as before
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+    console.log("VW:",vw,"VH:",vh);
+});
+*/

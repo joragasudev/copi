@@ -21,7 +21,7 @@ const NoteCard = memo((props) =>{
             event.stopPropagation(); //previene copiado...
         }
         else{//react-toastify
-            const toastText = note.title.length < 10? note.title : note.title.substring(0,9)+'...';
+            const toastText = AppData.truncateText(note.title);
             toast.info(`${toastText} Copied!`, {
             position: toast.POSITION.BOTTOM_CENTER,
             autoClose: 1000,
@@ -29,6 +29,7 @@ const NoteCard = memo((props) =>{
             pauseOnHover: false,
             pauseOnFocusLoss:false,
             hideProgressBar:true,
+            delay:0,
             onOpen: () => {},
             onClose: () => {},
             });
@@ -38,7 +39,7 @@ const NoteCard = memo((props) =>{
 
     function openNoteEditor(event,note){
         setNoteToEdit(note);
-        setAppView({view:'noteEditor'});
+        setAppView({...appView, noteEditor:true,sidePanel:false,tagsEditor:false});
         event.stopPropagation();
     }
 
@@ -46,7 +47,7 @@ const NoteCard = memo((props) =>{
     useEffect(()=>{
         const fn = (e)=>{
             setNoteToEdit(note);
-            setAppView({view:'noteEditor'});
+            setAppView({...appView, noteEditor:true,sidePanel:false,tagsEditor:false});
             e.stopPropagation(); 
         }
         const noteRef = noteCardRef.current;
@@ -55,12 +56,22 @@ const NoteCard = memo((props) =>{
             if (noteRef)
                 noteRef.removeEventListener('long-press', fn); 
          }
-    },[note]);
+    },[note,appView]);
+
+// style={isSelected?{backgroundColor:"purple"}:{}
 
     return(
-    <div className="noteCard" ref={noteCardRef} onClick={(e)=>{clickHandler(e);}} style={isSelected?{backgroundColor:"purple"}:{}}>
-        <p>{note.title}</p>
-        <p>{note.text}</p>
+    <div className="noteCard noteCardColorWhite" ref={noteCardRef} 
+    onClick={(e)=>{clickHandler(e);}}
+    style={isSelected?{border: "1px solid black",boxShadow:"0 1px 2px 0 rgba(60,64,67,0.302),0 1px 3px 1px rgba(60,64,67,0.149)" }:{} 
+    }>
+        <div className="noteCard-title-container">
+            {note.title}
+        </div>
+        <div className="noteCard-text-container">
+            {/* {AppData.truncateText( note.text,140)} */}
+            {note.text}
+        </div>
 
     </div>
     );
@@ -98,8 +109,8 @@ const ListContent = memo((props) => {
              {...provided.dragHandleProps}
              style={{...provided.draggableProps.style,
              border : snapshot.isDragging?
-             "1px solid red" : "1px solid white" , 
-             boxSahdow: snapshot.isDragging?
+             "1px solid transparent" : "1px solid transparent" , 
+             boxShadow: snapshot.isDragging?
              "0 0 .4rem #666" : "none"}}>
                 <NoteCard isSelected={selectedNotesKeys.includes(note.key)} note={note} selectNoteHandler={selectANote}/>
             </div>
@@ -120,28 +131,28 @@ const NoteList = () =>{
     
     const sendNotesToTrashHandler = ()=>{
         AppData.sendNotesToTrash(selectedNotesKeys).then((notesList)=>{
-            setAppView({...appView,view:'default'});
-            setNoteList(notesList);
-            setSelectedNotesKeys([]);
+             setSelectedNotesKeys([]);
+             setAppView({...appView,view:'default',isSelecting:false});
+             setNoteList(notesList);
         });
     }
     const sendNotesInTagsToTrashHandler = ()=>{
         AppData.sendNotesToTrash(selectedNotesKeys).then((notesList)=>{
-            setAppView({...appView,view:'tagFiltered'});
-            setNoteList(AppData.getNotesFilteredByTag(appView.tagFilter));
             setSelectedNotesKeys([]);
+            setAppView({...appView,view:'tagFiltered',isSelecting:false});
+            setNoteList(AppData.getNotesFilteredByTag(appView.tagFilter));
         });
     }
     const deleteNotesHandler = ()=>{
         AppData.deleteNotes(selectedNotesKeys).then((notesInTrash)=>{
-            setAppView({...appView,view:'trash'});
-            setNoteList(notesInTrash);
             setSelectedNotesKeys([]);
+            setAppView({...appView,view:'trash',isSelecting:false});
+            setNoteList(notesInTrash);
         });
     }
     const restoreNotesHandler = ()=>{
         AppData.restoreNotes(selectedNotesKeys).then((notesInTrash)=>{
-            setAppView({...appView,view:'trash'}); 
+            setAppView({...appView,view:'trash',isSelecting:false}); 
             setNoteList(notesInTrash);
             setSelectedNotesKeys([]);
         }); 
@@ -151,22 +162,38 @@ const NoteList = () =>{
         setSelectedNotesKeys([]);
     }
     
+    const listTitle = ()=>{
+        if (!noteList.length)
+            return 'NO NOTES'
+        if (appView.view === 'default')
+            return 'ALL NOTES'
+        if (appView.view === 'trash')
+            return 'TRASHCAN'
+        if (appView.view === 'tagFiltered')
+            return ('TAG: '+AppData.getTagName(appView.tagFilter))
+    }
+
+
     if (!noteList.length)
-        return (<>
+        return (
+            <div className="searchBar-and-NoteList">
             <SearchBar sendNotesToTrashHandler={sendNotesToTrashHandler} clearSelection={clearSelection}/>
-            <div>No hay notas</div>
-            </>
+            <div className="listTitle">{listTitle()}</div>
+            </div>
         );
 
     return(
-        <>
+        <div className="searchBar-and-NoteList">
         <SearchBar 
             sendNotesToTrashHandler={sendNotesToTrashHandler}
             sendNotesInTagsToTrashHandler = {sendNotesInTagsToTrashHandler}
             deleteNotesHandler = {deleteNotesHandler}
             restoreNotesHandler = {restoreNotesHandler}
             clearSelection={clearSelection}
+            selection = {selectedNotesKeys}
             />
+
+        <div className="listTitle">{listTitle()}</div>
 
         <DragDropContext onDragEnd={(dragEndObject)=>{ //DRAG HANDLER
             if (dragEndObject.destination != null){
@@ -191,7 +218,7 @@ const NoteList = () =>{
                 )}
             </Droppable>
         </DragDropContext>
-        </>
+        </div>
     )
 }
 

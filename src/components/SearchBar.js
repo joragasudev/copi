@@ -6,9 +6,10 @@ const SEARCH_DELAY_MS = 300;
 let lastTimeOutID = -1;//Este deberia estar como un useState dentro del Componente?
 
 const SearchBar = (props) =>{
-    const {sendNotesToTrashHandler,sendNotesInTagsToTrashHandler,deleteNotesHandler,restoreNotesHandler,clearSelection} = props;
+    const {sendNotesToTrashHandler,sendNotesInTagsToTrashHandler,deleteNotesHandler,restoreNotesHandler,selection,clearSelection} = props;
     const {setNoteList,appView,setAppView} = useContext(Context);
-    const [showModal,setShowModal] = useState(false);
+    const [modalObject,setModalObject] = useState({show:false});
+    console.log('re-rendering','AppView es:',appView);
 
     const delayedSetSearchTerm = (e)=>{
         clearTimeout(lastTimeOutID);
@@ -17,64 +18,111 @@ const SearchBar = (props) =>{
             setNoteList(AppData.searchNotes(e.target.value,appView));
         }, SEARCH_DELAY_MS);    
     }
+    
 
-    const modalAcceptHandler = ()=>{
-        if (appView.view === 'default')
-            return sendNotesToTrashHandler;
-        if (appView.view === 'tagFiltered')
-            return sendNotesInTagsToTrashHandler;
-        if (appView.view === 'trash')
-            return deleteNotesHandler;
+    const trashCanModalBehavior = ()=>{
+
+        const trashCanModalAcceptHandler = ()=>{
+            if (appView.view === 'default')
+                return sendNotesToTrashHandler;
+            if (appView.view === 'tagFiltered')
+                return sendNotesInTagsToTrashHandler;
+            if (appView.view === 'trash')
+                return deleteNotesHandler;
+        }
+        const trashCanModalText = ()=>{
+            if (appView.view === 'default' || appView.view ==='tagFiltered')
+                return 'Delete these notes?';
+            if (appView.view === 'trash')
+                return 'Delete these notes permanently?'; 
+        }
+
+        let acceptHandler = trashCanModalAcceptHandler();
+        let modalText = trashCanModalText();
+        
+        return ({
+            show:true,
+            modalAcceptHandler:acceptHandler,
+            modalText:modalText,
+        });
     }
-    const modalText = ()=>{
-        if (appView.view === 'default')
-        return 'Enviar estas notas a la basura?';
-        if (appView.view === 'tagFiltered')
-            return 'Enviar estas notas a la basura TAG?';
-        if (appView.view === 'trash')
-            return 'borrar permanentemente estas notas?'; 
-    }
+
+    const disableTrashButton=(selection?selection.length===0:false);
+    const hideRestoreButton = !appView.view === 'trash';
 
     return (
-        <div>
+        <div className="search-bar">
             {/* Este Modal:
                 En 'default' deberia enviar a trash y retornar la vista default...
                 En 'tagFiltered' deberia enviar a trash y retornar la misma vista tagfiltered... 
                 En 'trash', deberia deletearlas de la DB y retornar la vista trash...
                 En 'trash', con otro boton o como sea, se tiene que poder restaurar.  */}
-            {
-            showModal?
+            {modalObject.show?
             <Modal
-                acceptHandler={modalAcceptHandler()}
-                cancelHandler={()=>{setShowModal(false)}}
-                modalText={modalText()}
+                acceptHandler={modalObject.modalAcceptHandler}
+                cancelHandler={()=>{setModalObject({show:false})}}
+                modalText={modalObject.modalText}
             />
             :null}
 
-            <button onClick={()=>{setAppView( {view:'sidePanel'} )}}>SP</button>
-            <input id="search2" type='text' name='search' onChange={(e)=>{delayedSetSearchTerm(e)}}/>
-            Search
-
-            {/* Boton: Seleccionar/Cancelar */}
-            <button onClick={()=>{
-                if(appView.isSelecting){
-                    setAppView({...appView, isSelecting:false});
-                    clearSelection(); 
-                }else{
-                    setAppView({...appView, isSelecting:true}); 
-                }
-                }}>{appView.isSelecting? 'Cancel':'Select' }
+            {/* SidePanel button */}
+            <button className="svgIconButton" onClick={()=>setAppView( {...appView,sidePanel:true} )}>
+                <img className="svgIcon svgIcon-margin" src="/assets/hamburger.svg" alt="SP" />
             </button>
+
+            {/* Middle searchBar and buttons */}
+            <div className="middleSearchBar">
+              {/* Search Input */}
+              <input className="search-input" placeholder="Search..." id="searchInput" type='text' name='search' onChange={(e)=>{delayedSetSearchTerm(e)}}/>
+              
+              {/* Lupita */}
+              <button className="svgIconButton" onClick={()=>{document.getElementById("searchInput").focus();}}>
+                <img className="svgIcon svgIcon-margin" src={"assets/search.svg"} alt="magGlass" />
+              </button>
             
-            {/* Boton: Borrar("confirmar") con modal   </Modal>*/} 
+              {/* Boton: Seleccionar/Cancelar X */}
+              <button className={"svgIconButton"}  onClick={()=>{
+                    if(appView.isSelecting){
+                        setAppView({...appView, isSelecting:false});
+                        clearSelection(); 
+                    }else{
+                        setAppView({...appView, isSelecting:true}); 
+                    }
+                    }}>
 
-            {appView.isSelecting?
-            <button onClick={()=>{setShowModal(true)}}>Borrar</button>
-            :null}
+                <img className="svgIcon svgIcon-margin" src={appView.isSelecting? "/assets/close.svg":"/assets/checklist_selectPonele2.svg"} alt="SP" />
+              </button>
 
-            {( appView.view==='trash' && appView.isSelecting )?
-            <button onClick={()=>{restoreNotesHandler()}}>Restore</button>
-            :null}
+              {/* Restore Tachito */}
+              <button className="svgIconButton" disabled={(appView.view!=='trash' || !appView.isSelecting)} onClick={
+                        ()=>{setModalObject({
+                            show:true,
+                            modalAcceptHandler:restoreNotesHandler,
+                            modalText:'Restore these notes?'
+                        });
+                        }
+                    }>
+                    <img className={`
+                        svgIcon svgIcon-margin 
+                        ${disableTrashButton?'svgIcon-disabled':''} 
+                        ${(appView.view!=='trash' || !appView.isSelecting)?'svgIcon-hide':''}
+                        `} 
+                    src="/assets/restore_from_trash.svg"
+                    alt="SP"
+                    />
+              </button>
+            </div>
+
+            {/* Tachito: Borrar("confirmar"). Activa el modal </Modal>*/} 
+            <button className="svgIconButton" disabled={disableTrashButton} onClick={
+                    ()=>{setModalObject(trashCanModalBehavior())}
+                }>
+                <img className={`svgIcon svgIcon-margin ${disableTrashButton?'svgIcon-disabled':''} ${!appView.isSelecting?'svgIcon-hide':''}`} 
+                    src={appView.view==='trash'?"/assets/delete_forever.svg":"/assets/trashCan.svg"} 
+                    alt="SP"
+                />
+            </button>
+
         </div>
     )
 }

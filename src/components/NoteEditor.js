@@ -14,7 +14,7 @@ const TitleInput = memo((props)=>{
     }
 
     return(
-    <input id="title-input" type='text' name='title'
+    <input className="titleInput" placeholder="Title" id="title-input" type='text' name='title'
             value={value} onChange={(e)=>{onChangeHandler(e.target.value)}}/>
     )
 })
@@ -26,68 +26,114 @@ const TextInput = memo((props)=>{
         setValue(value);
         textOnChangeHandler(value);
     }
-   
+//rows="4" cols="50"
     return(
-    <textarea id="text-input" name="text" rows="4" cols="50"
+    <textarea className="textInput" placeholder="Note" id="text-input" name="text" 
             value={value} onChange={(e)=>{onChangeHandler(e.target.value)}}>  
     </textarea>
     )
 })
 
 const NoteEditor = ()=>{
-    console.log('Rendering Nuevo3v2 NoteEditor...');
     const {noteToEdit,setNoteList,appView,setAppView} = useContext(Context);
-    const noteEditorRef = useRef(null);
     const [noteTags,setNoteTags] = useState(noteToEdit?noteToEdit.noteTags:[]);
-    const [title,setTitle] = useState(noteToEdit? noteToEdit.title : 'title...');
-    const [text,setText] = useState(noteToEdit? noteToEdit.text : 'text...');
+    const [title,setTitle] = useState(noteToEdit? noteToEdit.title : '');
+    const [text,setText] = useState(noteToEdit? noteToEdit.text : '');
+    const [noteFirstState,setNoteFirstState]= useState({title:title, text:text, noteTags:[...noteTags]}) ;
+    
     const [showTagEditor,setShowTagEditor] = useState(false);//Ver si esto no me combiene hacerlo simil al tagsEditor....???? quiza no
 
+    
+    function hasSomethingChange(){
+        const hasSameTags = ( (noteTags.length === noteFirstState.noteTags.length) &&
+                              (noteTags.every((e)=>noteFirstState.noteTags.includes(e))) );
+
+        if( text!==noteFirstState.text || !hasSameTags || title!==noteFirstState.title )
+            return true;
+        
+        return false;
+    }
+
     return(
-        <div id="note-editor" ref={noteEditorRef} className={`note-editor ${(appView.view==='noteEditor')? 'note-editor-show' : ''}`}>
-            <button onClick={()=>{
-                noteEditorRef.current.classList.toggle('note-editor-show');
-                setAppView({view:'default'});
-                }} >Cerrar</button>
+        <div id="note-editor"  className={`note-editor ${appView.noteEditor? 'note-editor-show' : ''}`}>
+            <div className="note-editor-container">
 
-            <button onClick={()=>{
-                if(noteToEdit===null){
-                    AppData.saveNewNote({title: title,
-                                          text:text,
-                                          noteTags:noteTags,})
-                                      .then((r)=>{
-                                            //setNoteList(AppData.allNotesCache);
-                                            setNoteList(AppData.getNotes());
-                                        });
-                    setAppView({view:'default'});
-                    }
-                else{
-                    AppData.updateNote({title:title,
-                            text:text,
-                            key:noteToEdit.key,
-                            noteTags:noteTags,})
-                            .then((r)=>{
-                                //setNoteList(AppData.allNotesCache);
+            <div className="topButtonsBar">
+            {/* Arrow Back Button  
+            <button className="svgIconButton" onClick={()=>{ setAppView({view:'default'});}}>
+                    <img className={`svgIcon svgIcon-margin`} src="/assets/arrow_back.svg" alt="back" />
+            </button>*/}
+
+            {/* Accept button */}
+            <div className="topButtonsBar"></div>
+            <button className="svgIconButton" onClick={()=>{
+                if(noteToEdit===null){//(new note)
+                    if(hasSomethingChange())
+                        AppData.saveNewNote({title: title,text:text,noteTags:noteTags,}).then((r)=>{
+                            if(appView.view === 'tagFiltered')
+                                setNoteList(AppData.getNotesFilteredByTag(appView.tagFilter));
+                            else
                                 setNoteList(AppData.getNotes());
-                            });
-                    setAppView({view:'default'});
+                        });
+
+                    setAppView({...appView,noteEditor:false,sidePanel:false,tagsEditor:false});
                 }
-                }}>Guardar</button>
+                else{//edited note.
+                    if(hasSomethingChange())
+                        AppData.updateNote({title:title,text:text,key:noteToEdit.key,noteTags:noteTags,}).then((r)=>{
+                            if(appView.view === 'tagFiltered')
+                                setNoteList(AppData.getNotesFilteredByTag(appView.tagFilter));
+                            else
+                                setNoteList(AppData.getNotes());
+                        });
 
+                    setAppView({...appView,noteEditor:false,sidePanel:false,tagsEditor:false});
+                    }
+                }}>
+                       {/* <img className={`svgIcon svgIcon-margin`} src="/assets/done.svg" alt="save" />  */}
+                    <img className={`svgIcon svgIcon-margin`} src="/assets/arrow_back.svg" alt="save" /> 
+                </button>
+                </div>
+
+            {/* Titulo */}
             <TitleInput initialValue={title} titleOnChangeHandler={setTitle} />
-            <TextInput initialValue={text} textOnChangeHandler={setText}/>
-            {AppData.getTagsByIds(noteTags).map((tag)=><p key={tag.key}>{tag.name}</p>)}
-            <button onClick={()=>{setShowTagEditor(true)}}> Tags </button>
 
-            {showTagEditor? <NoteTagsEditor note={noteToEdit} saveNoteTagsHandler={setNoteTags} showTagsEditorHandler = {setShowTagEditor}/> : null}
-            
+            {/* Texto */}
+            <TextInput initialValue={text} textOnChangeHandler={setText}/>
+
+            {/* Burbujas tags  */}
+            <div className="tagsBubblesContainer">
+            {
+            noteTags.length >0?
+            AppData.getTagsByIds(noteTags).map((tag)=>
+            <div className="tagBubbleContainer" key={tag.key}>
+             <div onClick={()=>{setShowTagEditor(true)}} className="tagBubble" > 
+                <img className={`svgIcon svgIconMini`} src="/assets/label.svg" alt="tag" />
+                <div className="tagBubbleText">{tag.name}</div> 
+             </div>
+             </div>
+             )
+             :<div className="tagBubbleContainer"> 
+                <div onClick={()=>{setShowTagEditor(true)}} className="tagBubble"> 
+                <img className={`svgIcon svgIconMini`} src="/assets/label.svg" alt="tag" />
+                <div>Tags</div> 
+                </div>  
+              </div>    
+            }
+            </div>
+           
+            {/* <button onClick={()=>{setShowTagEditor(true)}}> Tags </button> */}
+            {/* Tag editor */}
+            {showTagEditor? <NoteTagsEditor /*note={noteToEdit}*/ noteTags={noteTags} saveNoteTagsHandler={setNoteTags} showTagsEditorHandler = {setShowTagEditor}/> : null}
+        </div>
         </div>
     );
 }
 
 const NoteEditorContainer = () =>{
     const {appView} = useContext(Context);
-    return(<>{(appView.view==='noteEditor')?<NoteEditor />:null}</>);
+    // return(<>{(appView.view==='noteEditor')?<NoteEditor />:null}</>);
+    return(<>{appView.noteEditor?<NoteEditor />:null}</>);
 }
 
 export default NoteEditorContainer;

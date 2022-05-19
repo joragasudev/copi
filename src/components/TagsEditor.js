@@ -12,7 +12,7 @@ const TagInput =memo((props)=>{
         tagChangeHandler(value);
     }
     return(
-        <input type="text" value={value} onChange={(e)=>onChangeHandler(e.target.value)}></input>
+        <input style={{flexGrow: 8}} className="search-input input-margin" type="text" value={value} onChange={(e)=>onChangeHandler(e.target.value)}></input>
         )
 });
 
@@ -27,12 +27,16 @@ const TagInputCreator = (props)=>{
     }); 
 
     return(
-        <>
-            <input type='text' name='addTagInput' onChange={(e)=>{
+        <div className="tag-add-container">
+
+            <input className="tag-add-input" type='text' name='addTagInput' onChange={(e)=>{
                 setTerm(e.target.value);
             }}/>
-             <button onClick={()=>{saveTagHandler(term)}} disabled={buttonIsDisabled}> + </button>
-        </>
+            <button className="svgIconButton" onClick={()=>{saveTagHandler(term)}} disabled={buttonIsDisabled}> 
+                <img className= {`svgIcon svgIcon-margin ${buttonIsDisabled?'svgIcon-disabled':''}`} src="/assets/add.svg" alt="addtag" />
+            </button>
+        
+        </div>
     )
 }
 
@@ -110,7 +114,7 @@ const TagsEditor=()=>{
         const [allTagsLocal,setAllTagsLocal] = useState(AppData.allTagsCache); // { [{key:0, name:'cocina'},{key:10, name:'perros},...]
         const [tagsChanges,dispatchTagsChanges] = useReducer(tagsChangerReducer,[]);
         const [modalView,setModalView] = useState({show:false});
-        
+        console.log("alltagslocal",allTagsLocal); 
         const updateTagNameHandler = (localTag,newTagName)=>{
             dispatchTagsChanges({type:'update', payload:{...localTag, name:newTagName}}); //{type:'update' , payload:{{key:2,name:'newName'}} }
             const index = allTagsLocal.findIndex ((tag)=>{ return tag.key === localTag.key });
@@ -129,8 +133,13 @@ const TagsEditor=()=>{
         const saveChangesHandler = ()=>{
             //Aca tendria que checkear que todos los 'name' sean distintos... (con la treta de new Set(tagsChanges))
             AppData.applyTagsChanges(tagsChanges).then((r)=>{
-                setAppView({...appView,view:'default'});
-                setNoteList(AppData.getNotes());
+                if(appView.view ==='tagFiltered' && AppData.existTagWithKey(appView.tagFilter) ){
+                    setAppView({...appView,tagsEditor:false});
+                    setNoteList(AppData.getNotesFilteredByTag(appView.tagFilter));
+                }else{
+                    setAppView({...appView,view:'default', tagsEditor:false});
+                    setNoteList(AppData.getNotes());
+                }
             });
                 
         }
@@ -138,7 +147,7 @@ const TagsEditor=()=>{
             setModalView({show:false});
         }
         const shouldDisableSaveButton=()=>{
-            const onlyTagNamesArray = allTagsLocal.map(t=>t.name);
+            const onlyTagNamesArray = allTagsLocal.map(t=>t.name.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, ""));
             const noDupSet = new Set(onlyTagNamesArray);
             const hasBlankTags = !onlyTagNamesArray.every(t=>t.trim().length > 0);
             const areTagsRepeated = (onlyTagNamesArray.length !== noDupSet.size)
@@ -155,26 +164,35 @@ const TagsEditor=()=>{
                 classNames={modalView.classNames}
             />
             :null}
-
-            <button onClick={()=>{setAppView({view:'default'})}}>Cancelar</button>
+            <div className="title-container">
+                <button className="svgIconButton" onClick={()=>{saveChangesHandler(); setAppView({...appView, tagsEditor:false, sidePanel:true})}} disabled={shouldDisableSaveButton()}>
+                    <img className={`svgIcon svgIcon-margin ${shouldDisableSaveButton()? 'svgIcon-disabled':''}`} src="/assets/arrow_back.svg" alt="back" />
+                </button>
+                <div className="side-panel-item-text" style={ {display:"flex", justifyContent:"center", fontSize:"1.4rem" }} >Edit tags</div>
+            </div>
+            <hr/>
             <TagInputCreator saveTagHandler={createNewTagHandler} allTags={allTagsLocal}/>
-            <button onClick={()=>{saveChangesHandler(); setAppView({view:'default'})}} disabled={shouldDisableSaveButton()}>Save Changes</button>
-
+            <hr/>
             {
                 allTagsLocal.map((tag)=>{
                     return(
-                    <div key={tag.key}>
-                        <button onClick={()=>{
-                            setModalView({
-                               show:true,
-                               acceptHandler:()=>{deleteTagHandler(tag)},
-                               cancelHandler:()=>{closeModal()},
-                               modalText:`Esta seguro de eliminar el tag ${tag.name} ?`,
-                               classNames:'',
-                            });
-                            }}>D</button> 
-                        
+                    <div key={tag.key} className="tag-list-item" >
+                        <img className="svgIcon" src="/assets/label.svg" alt="label" />
+
                         <TagInput tagName={tag.name} tagChangeHandler={(newTagName)=>{updateTagNameHandler(tag,newTagName)} }/>
+
+                        <button className="svgIconButton" onClick={()=>{
+                            setModalView({
+                                show:true,
+                                acceptHandler:()=>{deleteTagHandler(tag)},
+                                cancelHandler:()=>{closeModal()},
+                                modalText:`Delete tag: ${tag.name} ?`,
+                                classNames:'',
+                            });
+                        }}>
+                            <img className="svgIcon svgIcon-margin" src="/assets/trashCan.svg" alt="trashcan" />
+                        </button> 
+                        
                     </div>
                 )}
                 )
@@ -185,7 +203,8 @@ const TagsEditor=()=>{
 
 const TagsEditorContainer = ()=>{
     const {appView} = useContext(Context);
-    return(<>{(appView.view === 'tagsEditor')?<TagsEditor />:null}</>);
+    // return(<>{(appView.view === 'tagsEditor')?<TagsEditor />:null}</>);
+    return(<>{appView.tagsEditor? <TagsEditor/> :null}</>);
 }
 export default TagsEditorContainer;
 

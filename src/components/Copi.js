@@ -101,7 +101,11 @@ const Tests = ()=>{
 */
 
 
-
+const medidas = ()=>{
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+   alert("vw:"+vw+" y vh:"+vh); 
+}
 
 const Copi = () => {
     return(
@@ -111,10 +115,11 @@ const Copi = () => {
                 <SidePanel/>
                 <NoteEditorContainer/>
                 <TagsEditorContainer/>
-                {/* <SearchBarAndNoteList/> o bien meter searchBar en NoteList (q seria lo mismo) ????*/}
-                {/* <SearchBar/> */}
-                <NoteList/>
-                <BottomBar/>
+                <div className="mainScreen">
+                    <NoteList/>
+                    {/* <button onClick={()=>{medidas()}}>Medidas</button> */}
+                    <BottomBar/>
+                </div>
             </DefaultProvider>
         </>
     )

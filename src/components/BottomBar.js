@@ -2,11 +2,13 @@ import { Context } from "./Copi";
 import { useContext } from "react";
 
 const BottomBar = ()=>{
-    const {setNoteToEdit,setAppView} = useContext(Context);
+    const {setNoteToEdit,appView,setAppView} = useContext(Context);
 
     return (
-        <div className="bottom-bar"> 
-            <button onClick={()=>{setNoteToEdit(null);setAppView({view:'noteEditor'})}}>Panel nueva Nota</button>
+        <div className="bottom-barNO"> 
+            <button className="btn-circle" onClick={()=>{setNoteToEdit(null);setAppView({...appView, noteEditor:true,sidePanel:false,tagsEditor:false})}}>
+                <img className="addIcon" src={"assets/add.svg"} alt="addNote" />
+            </button>
         </div>
     )
 }
