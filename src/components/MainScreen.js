@@ -7,7 +7,7 @@ import { DragDropContext } from "react-beautiful-dnd";
 import { Droppable } from "react-beautiful-dnd";
 import { Draggable } from "react-beautiful-dnd";
 import { AppData } from "../data/Data2";
-import SearchBar from "./SearchBar";
+import TopBar from "./TopBar";
 //NoteList deberia ser el padre de una serie de Componentes Memoizados con memo (los de la lista).
 
 const NoteCard = memo((props) =>{
@@ -61,15 +61,14 @@ const NoteCard = memo((props) =>{
 // style={isSelected?{backgroundColor:"purple"}:{}
 
     return(
-    <div className="noteCard noteCardColorWhite" ref={noteCardRef} 
+    <div className="noteCard noteCardContainer--white" ref={noteCardRef} 
     onClick={(e)=>{clickHandler(e);}}
     style={isSelected?{border: "1px solid black",boxShadow:"0 1px 2px 0 rgba(60,64,67,0.302),0 1px 3px 1px rgba(60,64,67,0.149)" }:{} 
     }>
-        <div className="noteCard-title-container">
+        <div className="ellipsis noteCardContainer__title">
             {note.title}
         </div>
-        <div className="noteCard-text-container">
-            {/* {AppData.truncateText( note.text,140)} */}
+        <div className="noteCardContainer__text">
             {note.text}
         </div>
 
@@ -101,8 +100,8 @@ const ListContent = memo((props) => {
      index={index}
      isDragDisabled={isDragDisabled}>
         {(provided,snapshot)=>(
-            <div className='note-card-container'
-             id={'note-card-container'+note.key}
+            <div className='noteCardContainer'
+             id={'noteCardContainer'+note.key}
              data-note-key={note.key}
              ref={provided.innerRef}
              {...provided.draggableProps}
@@ -125,7 +124,7 @@ const ListContent = memo((props) => {
     </>)
 })
 
-const NoteList = () =>{
+const MainScreen = () =>{
     const [selectedNotesKeys,setSelectedNotesKeys] = useState([]);
     const {noteList,setNoteList,appView,setAppView} = useContext(Context);
     
@@ -157,11 +156,9 @@ const NoteList = () =>{
             setSelectedNotesKeys([]);
         }); 
     }
-    
     const clearSelection = ()=>{
         setSelectedNotesKeys([]);
     }
-    
     const listTitle = ()=>{
         if (!noteList.length)
             return 'NO NOTES'
@@ -176,15 +173,15 @@ const NoteList = () =>{
 
     if (!noteList.length)
         return (
-            <div className="searchBar-and-NoteList">
-            <SearchBar sendNotesToTrashHandler={sendNotesToTrashHandler} clearSelection={clearSelection}/>
-            <div className="listTitle">{listTitle()}</div>
+            <div className="topBarAndNoteList">
+                <TopBar sendNotesToTrashHandler={sendNotesToTrashHandler} clearSelection={clearSelection}/>
+                <div className="listTitle">{listTitle()}</div>
             </div>
         );
 
     return(
-        <div className="searchBar-and-NoteList">
-        <SearchBar 
+        <div className="topBarAndNoteList">
+        <TopBar 
             sendNotesToTrashHandler={sendNotesToTrashHandler}
             sendNotesInTagsToTrashHandler = {sendNotesInTagsToTrashHandler}
             deleteNotesHandler = {deleteNotesHandler}
@@ -193,7 +190,7 @@ const NoteList = () =>{
             selection = {selectedNotesKeys}
             />
 
-        <div className="listTitle">{listTitle()}</div>
+        <div className="listTitle ellipsis">{listTitle()}</div>
 
         <DragDropContext onDragEnd={(dragEndObject)=>{ //DRAG HANDLER
             if (dragEndObject.destination != null){
@@ -224,7 +221,4 @@ const NoteList = () =>{
 
 
 
-
-
-
-export default NoteList;
+export default MainScreen;

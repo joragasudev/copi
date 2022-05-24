@@ -12,7 +12,7 @@ const TagInput =memo((props)=>{
         tagChangeHandler(value);
     }
     return(
-        <input style={{flexGrow: 8}} className="search-input input-margin" type="text" value={value} onChange={(e)=>onChangeHandler(e.target.value)}></input>
+        <input className="input flexGrow_high flexGrow_high" type="text" value={value} onChange={(e)=>onChangeHandler(e.target.value)}></input>
         )
 });
 
@@ -27,13 +27,13 @@ const TagInputCreator = (props)=>{
     }); 
 
     return(
-        <div className="tag-add-container">
+        <div className="tagAddContainer">
 
-            <input className="tag-add-input" type='text' name='addTagInput' onChange={(e)=>{
+            <input className="input flexGrow_high" type='text' name='addTagInput' onChange={(e)=>{
                 setTerm(e.target.value);
             }}/>
-            <button className="svgIconButton" onClick={()=>{saveTagHandler(term)}} disabled={buttonIsDisabled}> 
-                <img className= {`svgIcon svgIcon-margin ${buttonIsDisabled?'svgIcon-disabled':''}`} src="/assets/add.svg" alt="addtag" />
+            <button className="iconButton" onClick={()=>{saveTagHandler(term)}} disabled={buttonIsDisabled}> 
+                <img className= {`icon ${buttonIsDisabled?'icon-disabled':''}`} src="/assets/add.svg" alt="addtag" />
             </button>
         
         </div>
@@ -155,7 +155,7 @@ const TagsEditor=()=>{
         }
 
         return(
-            <div className="tags-editor-container">
+            <div className="tagsEditor">
             {modalView.show
             ?<Modal 
                 acceptHandler={modalView.acceptHandler}
@@ -164,11 +164,11 @@ const TagsEditor=()=>{
                 classNames={modalView.classNames}
             />
             :null}
-            <div className="title-container">
-                <button className="svgIconButton" onClick={()=>{saveChangesHandler(); setAppView({...appView, tagsEditor:false, sidePanel:true})}} disabled={shouldDisableSaveButton()}>
-                    <img className={`svgIcon svgIcon-margin ${shouldDisableSaveButton()? 'svgIcon-disabled':''}`} src="/assets/arrow_back.svg" alt="back" />
+            <div className="viewHeader">
+                <button className="iconButton" onClick={()=>{saveChangesHandler(); setAppView({...appView, tagsEditor:false, sidePanel:true})}} disabled={shouldDisableSaveButton()}>
+                    <img className={`icon ${shouldDisableSaveButton()? 'icon-disabled':''}`} src="/assets/arrow_back.svg" alt="back" />
                 </button>
-                <div className="side-panel-item-text" style={ {display:"flex", justifyContent:"center", fontSize:"1.4rem" }} >Edit tags</div>
+                <div className="sidePanelHeaders" style={ {display:"flex", justifyContent:"center", fontSize:"1.4rem" }} >Edit tags</div>
             </div>
             <hr/>
             <TagInputCreator saveTagHandler={createNewTagHandler} allTags={allTagsLocal}/>
@@ -176,12 +176,12 @@ const TagsEditor=()=>{
             {
                 allTagsLocal.map((tag)=>{
                     return(
-                    <div key={tag.key} className="tag-list-item" >
-                        <img className="svgIcon" src="/assets/label.svg" alt="label" />
+                    <div key={tag.key} className="tagsListItem" >
+                        <img className="icon" src="/assets/label.svg" alt="label" />
 
                         <TagInput tagName={tag.name} tagChangeHandler={(newTagName)=>{updateTagNameHandler(tag,newTagName)} }/>
 
-                        <button className="svgIconButton" onClick={()=>{
+                        <button className="iconButton" onClick={()=>{
                             setModalView({
                                 show:true,
                                 acceptHandler:()=>{deleteTagHandler(tag)},
@@ -190,7 +190,7 @@ const TagsEditor=()=>{
                                 classNames:'',
                             });
                         }}>
-                            <img className="svgIcon svgIcon-margin" src="/assets/trashCan.svg" alt="trashcan" />
+                            <img className="icon " src="/assets/trashCan.svg" alt="trashcan" />
                         </button> 
                         
                     </div>

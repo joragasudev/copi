@@ -118,7 +118,7 @@ const TagsEditor=()=>{
         //y el delete tengo que elevar el modal?
         // setModalView( {show:true, acceptHandler: deleteTagHandler(tag.id); ,cancelHandler: closeModal ,modalText: `delete tag ${tag.id}`,classNames:''} );
         return(
-            <div className="tags-editor-container">
+            <div className="tagsEditor">
             {modalView.show
             ?<Modal 
                 acceptHandler={modalView.acceptHandler}

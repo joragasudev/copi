@@ -3,9 +3,8 @@ import {AppData} from "../data/Data2";
 import { createContext,useContext,useEffect,useState } from "react";
 import './styles.css';
 import SidePanel from './SidePanel';
-import SearchBar from './SearchBar';
-import BottomBar from './BottomBar';
-import NoteList from './NoteList';
+import AddNoteButton from './AddNoteButton';
+import MainScreen from './MainScreen';
 import NoteEditorContainer from "./NoteEditor";
 import TagsEditorContainer from "./TagsEditor";
 
@@ -110,15 +109,13 @@ const medidas = ()=>{
 const Copi = () => {
     return(
         <>
-            {/* <Tests/> */}
             <DefaultProvider>
                 <SidePanel/>
                 <NoteEditorContainer/>
                 <TagsEditorContainer/>
                 <div className="mainScreen">
-                    <NoteList/>
-                    {/* <button onClick={()=>{medidas()}}>Medidas</button> */}
-                    <BottomBar/>
+                    <MainScreen/>
+                    <AddNoteButton/>
                 </div>
             </DefaultProvider>
         </>

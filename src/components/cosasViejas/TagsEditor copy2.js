@@ -151,7 +151,7 @@ const TagsEditor=()=>{
         }
 
         return(
-            <div className="tags-editor-container">
+            <div className="tagsEditor">
             {modalView.show
             ?<Modal 
                 acceptHandler={modalView.acceptHandler}

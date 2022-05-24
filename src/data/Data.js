@@ -447,7 +447,7 @@ export const NoteData = new Data();
 
 ////////////////////CLIPBOARDJS (clipboardjs.com)///////////////////////////////////
 // const clipboard = new ClipboardJS('.card-container');
-const clipboard = new ClipboardJS ('.note-card-container', {
+const clipboard = new ClipboardJS ('.noteCardContainer', {
     text: function(trigger) {
         return NoteData.getNoteTextById(trigger.dataset.noteId);
     },

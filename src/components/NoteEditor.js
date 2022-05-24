@@ -14,7 +14,7 @@ const TitleInput = memo((props)=>{
     }
 
     return(
-    <input className="titleInput" placeholder="Title" id="title-input" type='text' name='title'
+    <input className="input input--noteTitleInput" placeholder="Title" id="title-input" type='text' name='title'
             value={value} onChange={(e)=>{onChangeHandler(e.target.value)}}/>
     )
 })
@@ -58,42 +58,37 @@ const NoteEditor = ()=>{
         <div id="note-editor"  className={`note-editor ${appView.noteEditor? 'note-editor-show' : ''}`}>
             <div className="note-editor-container">
 
-            <div className="topButtonsBar">
-            {/* Arrow Back Button  
-            <button className="svgIconButton" onClick={()=>{ setAppView({view:'default'});}}>
-                    <img className={`svgIcon svgIcon-margin`} src="/assets/arrow_back.svg" alt="back" />
-            </button>*/}
-
+            {/* <div className="topButtonsBar"> */}
+            <div className="title-container">
             {/* Accept button */}
-            <div className="topButtonsBar"></div>
-            <button className="svgIconButton" onClick={()=>{
-                if(noteToEdit===null){//(new note)
-                    if(hasSomethingChange())
-                        AppData.saveNewNote({title: title,text:text,noteTags:noteTags,}).then((r)=>{
-                            if(appView.view === 'tagFiltered')
-                                setNoteList(AppData.getNotesFilteredByTag(appView.tagFilter));
-                            else
-                                setNoteList(AppData.getNotes());
-                        });
+                <button className="iconButton" onClick={()=>{
+                    if(noteToEdit===null){//(new note)
+                        if(hasSomethingChange())
+                            AppData.saveNewNote({title: title,text:text,noteTags:noteTags,}).then((r)=>{
+                                if(appView.view === 'tagFiltered')
+                                    setNoteList(AppData.getNotesFilteredByTag(appView.tagFilter));
+                                else
+                                    setNoteList(AppData.getNotes());
+                            });
 
-                    setAppView({...appView,noteEditor:false,sidePanel:false,tagsEditor:false});
-                }
-                else{//edited note.
-                    if(hasSomethingChange())
-                        AppData.updateNote({title:title,text:text,key:noteToEdit.key,noteTags:noteTags,}).then((r)=>{
-                            if(appView.view === 'tagFiltered')
-                                setNoteList(AppData.getNotesFilteredByTag(appView.tagFilter));
-                            else
-                                setNoteList(AppData.getNotes());
-                        });
-
-                    setAppView({...appView,noteEditor:false,sidePanel:false,tagsEditor:false});
+                        setAppView({...appView,noteEditor:false,sidePanel:false,tagsEditor:false});
                     }
-                }}>
-                       {/* <img className={`svgIcon svgIcon-margin`} src="/assets/done.svg" alt="save" />  */}
-                    <img className={`svgIcon svgIcon-margin`} src="/assets/arrow_back.svg" alt="save" /> 
+                    else{//edited note.
+                        if(hasSomethingChange())
+                            AppData.updateNote({title:title,text:text,key:noteToEdit.key,noteTags:noteTags,}).then((r)=>{
+                                if(appView.view === 'tagFiltered')
+                                    setNoteList(AppData.getNotesFilteredByTag(appView.tagFilter));
+                                else
+                                    setNoteList(AppData.getNotes());
+                            });
+
+                        setAppView({...appView,noteEditor:false,sidePanel:false,tagsEditor:false});
+                        }
+                    }}>
+                        {/* <img className={`icon `} src="/assets/done.svg" alt="save" />  */}
+                        <img className={`icon `} src="/assets/arrow_back.svg" alt="save" /> 
                 </button>
-                </div>
+            </div>
 
             {/* Titulo */}
             <TitleInput initialValue={title} titleOnChangeHandler={setTitle} />
@@ -108,14 +103,14 @@ const NoteEditor = ()=>{
             AppData.getTagsByIds(noteTags).map((tag)=>
             <div className="tagBubbleContainer" key={tag.key}>
              <div onClick={()=>{setShowTagEditor(true)}} className="tagBubble" > 
-                <img className={`svgIcon svgIconMini`} src="/assets/label.svg" alt="tag" />
+                <img className={`icon`} src="/assets/label.svg" alt="tag" />
                 <div className="tagBubbleText">{tag.name}</div> 
              </div>
              </div>
              )
              :<div className="tagBubbleContainer"> 
                 <div onClick={()=>{setShowTagEditor(true)}} className="tagBubble"> 
-                <img className={`svgIcon svgIconMini`} src="/assets/label.svg" alt="tag" />
+                <img className={`icon`} src="/assets/label.svg" alt="tag" />
                 <div>Tags</div> 
                 </div>  
               </div>    

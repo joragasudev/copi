@@ -890,14 +890,14 @@ export const AppData = new Data();
 document.addEventListener('long-press', function(e) {
     //IMPORTANTE: Si esto lo hago en NoteList.js (en </NoteCard>) No hace falta ponerlo aca!. Cada NoteCard tendria su propio eventListener....
     //Con respecto a en que parte se hace el click en la noteCard, se pueden hacer 2 cosas aca: 
-    //1) NO ANDA BIEN Dejar que el evento suba con Bubbling y simplemente aca preguntamos si e.target.matches('.note-card-container') obtenemos su id con los dataset y ahi lo que querramos.
+    //1) NO ANDA BIEN Dejar que el evento suba con Bubbling y simplemente aca preguntamos si e.target.matches('.noteCardContainer') obtenemos su id con los dataset y ahi lo que querramos.
     //   El método element.matches('cssSelector') comprueba si el Element sería seleccionable por el selector CSS especificado en la cadena; en caso contrario, retorna false.
     //   Este no andaria bien, porque si hacemos click en un elemento interno, obviamente matches no va a andar, tendria que tener un matches con muchas cosas... mejor el 2)
-    //2) Usar e.target.closest('.note-card-container') para obtener el elemento note-card-container mas cercano al disparo del evento, y obtenemos su id con los dataset y ahi lo que querramos.
+    //2) Usar e.target.closest('.noteCardContainer') para obtener el elemento noteCardContainer mas cercano al disparo del evento, y obtenemos su id con los dataset y ahi lo que querramos.
     
     console.log(e);
     const element = e.target;
-    const elementCardContainer = element.closest('.note-card-container');//el elemento mas cercano de forma ascendiente o el mismo que cumpla con el selector.
+    const elementCardContainer = element.closest('.noteCardContainer');//el elemento mas cercano de forma ascendiente o el mismo que cumpla con el selector.
     if(elementCardContainer){
      const noteKey = elementCardContainer.dataset.noteKey;
      console.log(`*Abro el editor para la noteId:${noteKey} , y prevengo default click event*`);
@@ -909,7 +909,7 @@ document.addEventListener('long-press', function(e) {
 
 ////////////////////CLIPBOARDJS (clipboardjs.com)///////////////////////////////////
 // const clipboard = new ClipboardJS('.card-container');
-const clipboard = new ClipboardJS('.note-card-container', {
+const clipboard = new ClipboardJS('.noteCardContainer', {
     text: function(trigger) {
         const noteKey = parseInt(trigger.dataset.noteKey);
         return AppData.getNoteTextByKey(noteKey);

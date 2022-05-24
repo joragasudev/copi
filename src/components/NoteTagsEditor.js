@@ -52,13 +52,13 @@ const NoteTagsEditor = memo((props)=>{
     }
     
     return(
-        <div className="tags-editor-container"> 
+        <div className="tagsEditor"> 
             {/* Titulo y boton <- */}
-            <div className="title-container">
-                <button className="svgIconButton" onClick={()=>{saveButtonHandler(); showTagsEditorHandler(false);}}  >
-                    <img className={`svgIcon svgIcon-margin `} src="/assets/arrow_back.svg" alt="back" />
+            <div className="viewHeader">
+                <button className="iconButton" onClick={()=>{saveButtonHandler(); showTagsEditorHandler(false);}}  >
+                    <img className={`icon `} src="/assets/arrow_back.svg" alt="back" />
                 </button>
-                <div className="side-panel-item-text" style={ {display:"flex", justifyContent:"center", fontSize:"1.4rem" }} >Edit note tags</div>
+                <div className="sidePanelHeaders centerHeader" >Edit note tags</div>
             </div>
 
             <hr/>
@@ -79,11 +79,11 @@ const NoteTagsEditor = memo((props)=>{
 const CheckBoxTag = (props)=>{
     const {tagName,tagKey,isChecked,handleChange} = props;
     return (
-    <div className="note-tag-container">
+    <div className="noteTagContainer">
 
-        <img className="svgIcon" src="/assets/label.svg" alt="label" />
+        <img className="icon" src="/assets/label.svg" alt="label" />
 
-        <div style={{flexGrow:8}}className="side-panel-item-text tag-filter-name">{tagName}</div>
+        <div className="ellipsis flexGrow_high tagFilterName">{tagName}</div>
 
         <input type ='checkbox' 
         name={tagName}
@@ -108,16 +108,16 @@ const TagFilter = (props)=>{
     return(
         <>
             
-            <div className="tag-add-container">
-                <input className="tag-add-input" id="searchTags" type='text' name='searchTags' onChange={(e)=>{
+            <div className="tagAddContainer">
+                <input className="input flexGrow_high" id="searchTags" type='text' name='searchTags' onChange={(e)=>{
                     filterChangeHandler(e.target.value);
                     setTerm(e.target.value);
                 }}/>
-                <button className="svgIconButton" onClick={()=>{document.getElementById("searchTags").focus();}}>
-                    <img className="svgIcon svgIcon-margin" src={"assets/search.svg"} alt="magGlass" />
+                <button className="iconButton" onClick={()=>{document.getElementById("searchTags").focus();}}>
+                    <img className="icon " src={"assets/search.svg"} alt="magGlass" />
                 </button>
-                <button className="svgIconButton" onClick={()=>{addTagHandler(term)}} disabled={!showCreateTagButton}> 
-                    <img className= {`svgIcon svgIcon-margin ${!showCreateTagButton?'svgIcon-disabled':''}`} src="/assets/add.svg" alt="addtag" />
+                <button className="iconButton" onClick={()=>{addTagHandler(term)}} disabled={!showCreateTagButton}> 
+                    <img className= {`icon ${!showCreateTagButton?'icon-disabled':''}`} src="/assets/add.svg" alt="addtag" />
                 </button>
             </div>
             

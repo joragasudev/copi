@@ -5,7 +5,7 @@ import Modal from "./Modal";
 const SEARCH_DELAY_MS = 300;
 let lastTimeOutID = -1;//Este deberia estar como un useState dentro del Componente?
 
-const SearchBar = (props) =>{
+const TopBar = (props) =>{
     const {sendNotesToTrashHandler,sendNotesInTagsToTrashHandler,deleteNotesHandler,restoreNotesHandler,selection,clearSelection} = props;
     const {setNoteList,appView,setAppView} = useContext(Context);
     const [modalObject,setModalObject] = useState({show:false});
@@ -51,7 +51,7 @@ const SearchBar = (props) =>{
     const hideRestoreButton = !appView.view === 'trash';
 
     return (
-        <div className="search-bar">
+        <div className="topBar">
             {/* Este Modal:
                 En 'default' deberia enviar a trash y retornar la vista default...
                 En 'tagFiltered' deberia enviar a trash y retornar la misma vista tagfiltered... 
@@ -66,22 +66,22 @@ const SearchBar = (props) =>{
             :null}
 
             {/* SidePanel button */}
-            <button className="svgIconButton" onClick={()=>setAppView( {...appView,sidePanel:true} )}>
-                <img className="svgIcon svgIcon-margin" src="/assets/hamburger.svg" alt="SP" />
+            <button className="iconButton" onClick={()=>setAppView( {...appView,sidePanel:true} )}>
+                <img className="icon " src="/assets/hamburger.svg" alt="SP" />
             </button>
 
             {/* Middle searchBar and buttons */}
-            <div className="middleSearchBar">
+            <div className="topBar__middleElements">
               {/* Search Input */}
-              <input className="search-input" placeholder="Search..." id="searchInput" type='text' name='search' onChange={(e)=>{delayedSetSearchTerm(e)}}/>
+              <input className="input topBar__middleElements__searchInput" placeholder="Search..." id="searchInput" type='text' name='search' onChange={(e)=>{delayedSetSearchTerm(e)}}/>
               
               {/* Lupita */}
-              <button className="svgIconButton" onClick={()=>{document.getElementById("searchInput").focus();}}>
-                <img className="svgIcon svgIcon-margin" src={"assets/search.svg"} alt="magGlass" />
+              <button className="iconButton" onClick={()=>{document.getElementById("searchInput").focus();}}>
+                <img className="icon " src={"assets/search.svg"} alt="magGlass" />
               </button>
             
               {/* Boton: Seleccionar/Cancelar X */}
-              <button className={"svgIconButton"}  onClick={()=>{
+              <button className={"iconButton"}  onClick={()=>{
                     if(appView.isSelecting){
                         setAppView({...appView, isSelecting:false});
                         clearSelection(); 
@@ -90,11 +90,11 @@ const SearchBar = (props) =>{
                     }
                     }}>
 
-                <img className="svgIcon svgIcon-margin" src={appView.isSelecting? "/assets/close.svg":"/assets/checklist_selectPonele2.svg"} alt="SP" />
+                <img className="icon " src={appView.isSelecting? "/assets/close.svg":"/assets/checklist_selectPonele2.svg"} alt="SP" />
               </button>
 
               {/* Restore Tachito */}
-              <button className="svgIconButton" disabled={(appView.view!=='trash' || !appView.isSelecting)} onClick={
+              <button className="iconButton" disabled={(appView.view!=='trash' || !appView.isSelecting)} onClick={
                         ()=>{setModalObject({
                             show:true,
                             modalAcceptHandler:restoreNotesHandler,
@@ -103,9 +103,9 @@ const SearchBar = (props) =>{
                         }
                     }>
                     <img className={`
-                        svgIcon svgIcon-margin 
-                        ${disableTrashButton?'svgIcon-disabled':''} 
-                        ${(appView.view!=='trash' || !appView.isSelecting)?'svgIcon-hide':''}
+                        icon  
+                        ${disableTrashButton?'icon-disabled':''} 
+                        ${(appView.view!=='trash' || !appView.isSelecting)?'icon-hide':''}
                         `} 
                     src="/assets/restore_from_trash.svg"
                     alt="SP"
@@ -114,10 +114,10 @@ const SearchBar = (props) =>{
             </div>
 
             {/* Tachito: Borrar("confirmar"). Activa el modal </Modal>*/} 
-            <button className="svgIconButton" disabled={disableTrashButton} onClick={
+            <button className="iconButton" disabled={disableTrashButton} onClick={
                     ()=>{setModalObject(trashCanModalBehavior())}
                 }>
-                <img className={`svgIcon svgIcon-margin ${disableTrashButton?'svgIcon-disabled':''} ${!appView.isSelecting?'svgIcon-hide':''}`} 
+                <img className={`icon ${disableTrashButton?'icon-disabled':''} ${!appView.isSelecting?'icon-hide':''}`} 
                     src={appView.view==='trash'?"/assets/delete_forever.svg":"/assets/trashCan.svg"} 
                     alt="SP"
                 />
@@ -127,4 +127,4 @@ const SearchBar = (props) =>{
     )
 }
 
-export default SearchBar;
+export default TopBar;

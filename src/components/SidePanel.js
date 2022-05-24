@@ -10,9 +10,9 @@ const TagList=(props)=>{
     return(
         allTags.map((tag)=>{
             return(
-                <div key={tag.key} className="side-panel-item-container" onClick={()=>{clickTagHandler(tag.key)}}>
-                    <img className="svgIcon" src="/assets/label.svg" alt="label" />
-                    <div className="side-panel-item-text tag-filter-name" >{(tag.name)}</div>
+                <div key={tag.key} className="sidePanelTagContainer" onClick={()=>{clickTagHandler(tag.key)}}>
+                    <img className="icon" src="/assets/label.svg" alt="label" />
+                    <div className="ellipsis tagFilterName" >{(tag.name)}</div>
                 </div>
             )}
         )
@@ -39,29 +39,29 @@ const SidePanel = ()=>{
             <ModalBackground cancelHandler={()=>{setAppView({...appView,sidePanel:false});}}/>
             :null}
 
-        <div className={`side-panel ${appView.sidePanel?'side-panel-show' : ''}`} onClick={()=>{/*setView('default');*/}}>
-            <div className="side-panel-item-text" style={ {display:"flex", justifyContent:"center", fontSize:"1.4rem" }} >COPI</div>
-            <div className="side-panel-item-container" onClick={()=>{setAppView({...appView,view:'default',sidePanel:false}); setNoteList(AppData.getNotes());}}>
-                <img className="svgIcon" src="/assets/note.svg" alt="allNotes" />
-                <div className="side-panel-item-text">NOTES</div>
+        <div className={`sidePanel ${appView.sidePanel?'sidePanel--show' : ''}`} onClick={()=>{/*setView('default');*/}}>
+            <div className="sidePanelHeaders" style={ {display:"flex", justifyContent:"center", fontSize:"1.4rem" }} >COPI</div>
+            <div className="sidePanelTagContainer" onClick={()=>{setAppView({...appView,view:'default',sidePanel:false}); setNoteList(AppData.getNotes());}}>
+                <img className="icon" src="/assets/note.svg" alt="allNotes" />
+                <div className="sidePanelHeaders">NOTES</div>
             </div> 
             <hr/>
             <div style={ {display:"flex", justifyContent:"space-between", margin:"0px 8px 0px 8px"} }>
-                <div className="side-panel-item-text">TAGS</div>
-                <div onClick={(e)=>{setAppView({...appView,tagsEditor:true/*, sidePanel:false */});e.stopPropagation();}} className="side-panel-item-text">EDIT</div>
+                <div className="sidePanelHeaders">TAGS</div>
+                <div onClick={(e)=>{setAppView({...appView,tagsEditor:true/*, sidePanel:false */});e.stopPropagation();}} className="sidePanelHeaders">EDIT</div>
             </div>
             
             <TagList clickTagHandler={clickTagHandler}/>
             <hr/>
 
-            <div className="side-panel-item-container" onClick={()=>{setAppView({...appView,view:'trash',sidePanel:false}); setNoteList(AppData.getTrashedNotes());}}>
-                <img className="svgIcon" src="/assets/trashCan.svg" alt="SP" />
-                <div className="side-panel-item-text">DELETED</div>
+            <div className="sidePanelTagContainer" onClick={()=>{setAppView({...appView,view:'trash',sidePanel:false}); setNoteList(AppData.getTrashedNotes());}}>
+                <img className="icon" src="/assets/trashCan.svg" alt="SP" />
+                <div className="sidePanelHeaders">DELETED</div>
             </div>    
 
-            <div className="side-panel-item-container" onClick={()=>{setAppView({...appView,sidePanel:false, helpModal:true})}}>
-                <img className="svgIcon" src="/assets/help.svg" alt="SP" />
-                <div className="side-panel-item-text">HELP</div>
+            <div className="sidePanelTagContainer" onClick={()=>{setAppView({...appView,sidePanel:false, helpModal:true})}}>
+                <img className="icon" src="/assets/help.svg" alt="SP" />
+                <div className="sidePanelHeaders">HELP</div>
             </div>  
         </div>
         </>
