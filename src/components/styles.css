@@ -1,11 +1,12 @@
+/* BEM is not strictly applied here. */
 :root{
   background-color: white;
   --z-index-sidePanel: 7002;
-  --z-index-note-editor: 6002;
-  --z-index-bottom-bar: 6001;
-  --z-index-tagsEditor: 7003;
+  --z-index-noteEditor: 6002;
+  --z-index-tagsEditorModalBackground: 7003;
+  --z-index-tagsEditor: 7004;
   --z-index-add-note-button: 6000;
-  --z-index-modal-background: 7000;
+  --z-index-modalBackground: 7000;
   --z-index-modal: 7001;
   --flex-grow-high: 8;
   /*Ver bien, porque el DnD tiene como 5000 de z-index, estos quiza deberian arrancar en 6000*/
@@ -20,7 +21,7 @@ body {
 }
 
 
-/*GENERALES*/
+/*GENERAL*/
 .input{
   font-family: 'Noto Sans', serif;
   border:none;
@@ -34,7 +35,7 @@ body {
   margin-left: 8px;
   margin-right: 8px;
 }
-.ellipsis{ /* REEMPLAZAR POR ESTO!*/
+.ellipsis{ 
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -48,6 +49,12 @@ body {
   gap: 0px 0px; 
   grid-template-areas: 
     ". . ."; 
+}
+.viewHeader__title{
+  display: flex;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: bold;
 }
 .flexGrow_high{
   flex-grow: var(--flex-grow-high);
@@ -64,19 +71,19 @@ hr {
 }
 
 
-
-
-
-
-/* Modal */
-.modal-background{
-  z-index: var(--z-index-modal-background);
+/* Modal ok*/
+.modalBackground{
+  z-index: var(--z-index-modalBackground);
   background: rgba(10,10,10,0.6);
   width: 100%;
   height: 100%;
   left:0;
   top:0;
   position:fixed;
+}
+.modalBackground--tagsEditor{
+  z-index: var(--z-index-tagsEditorModalBackground);
+  background: rgba(10,10,10,0.3);
 }
 .modal{
   position: fixed;
@@ -90,9 +97,11 @@ hr {
   position:fixed;
   border-radius: 12px;
 }
-.modalHelp{
-  width: 350px;
-  height: 260px;
+.modal__container{
+  display:flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
 }
 .modal__buttonsBar{
   display:flex;
@@ -110,11 +119,9 @@ hr {
   /*overflow-y: scroll;*/
   overflow: hidden;
 }
-.modal__container{
-  display:flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
+.modal--helpModal{
+  width: 350px;
+  height: 260px;
 }
 .helpModal__textContainer{
   display:flex;
@@ -123,25 +130,18 @@ hr {
 }
 
 
-
-
-
-/*NoteEditor*/
-.note-editor{
+/*NoteEditor ok*/
+.noteEditor{
   height: 100%;
-  width: 0px;
+  width: 100%;
   position: fixed;
-  z-index: var(--z-index-note-editor);
+  z-index: var(--z-index-noteEditor);
   top: 0;
   right: 0;
   background-color: white;
   overflow-x: hidden;
-  transition: 0.1s;
 }
-.note-editor-show{
-  width: 100%;
-}
-.note-editor-container{
+.noteEditor__container{
   display:flex;
   width: auto;
   height: 100%;
@@ -152,13 +152,7 @@ hr {
   width: auto;
   margin: 4px;
 }
-
-.topButtonsBar{
-  display: flex;
-  width: auto;
-}
-
-.textInput{
+.noteTextInput{
   resize: none;
   font-family: 'Noto Sans', serif;
   font-size: 0.9rem;
@@ -170,7 +164,7 @@ hr {
   margin: 4px;
   flex-grow: 1;
 }
-.textInput:focus{
+.noteTextInput:focus{
   outline: none;
 }
 .tagBubbleContainer{
@@ -183,19 +177,11 @@ hr {
   font-weight: lighter;
   width: clamp(50px,100%,100px);
 }
-.tagBubble{
+.tagBubbleContainer__tagBubble{
   display: flex;
   justify-content: flex-start;
   align-items: center;
 }
-.tagBubbleText{
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  display: block;
-}
-
-
 
 
 /*TagsEditor ok*/
@@ -222,7 +208,6 @@ hr {
 }
 
 
-
 /*Side Panel ok*/
 .sidePanel{
   height: 100%;
@@ -247,6 +232,16 @@ hr {
 .sidePanelHeaders{
   font-size: 1rem;
   font-weight: bold;
+}
+.sidePanelHeaders--appTitle{
+  display: flex;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+.sidePanelHeaders__tagsHeaderContainer{
+  display: flex;
+  justify-content: space-between;
+  margin: 0px 8px 0px 8px;
 }
 .tagFilterName{
   font-size: 0.85rem;
@@ -303,10 +298,8 @@ hr {
   display: -webkit-box !important;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  white-space: normal;
+  white-space: pre-wrap;
 }
-
-
 
 
 /* Add Note Button. ok*/
@@ -323,7 +316,9 @@ hr {
   border-style: solid;
   border-color:lightsalmon;
 }
-
+.addNoteButton--hide{
+  display: none;
+}
 
 
 /*topBar (Antigua SearchBar) ok*/
@@ -344,15 +339,11 @@ hr {
 }
 
 
-
 /*ICONS and ICONBUTTONS ok*/
 .iconButton{
   background-color: transparent;
   border: none;
   padding: 0px;
-}
-.icon:active{
-  background-color: rgb(223, 223, 223);
 }
 .icon{
   background-color: transparent;
@@ -363,19 +354,70 @@ hr {
   border-radius: 6px;
   margin: 0px 4px 0px 4px; 
 }
-.icon-disabled{
+.icon:active{
+  background-color: rgb(223, 223, 223);
+}
+.icon--disabled{
   filter:opacity(20%);
 }
-.icon-hide{
+.icon--hide{
   filter:opacity(0%);
 }
-
-
-/* cascada. ver ok*/
-.centerHeader{
-  display: flex;
-  justify-content: center;
-  font-size: 1.4rem;
+/* cuando la screen es mayor a estos px se aplica esto */
+@media only screen and (min-width: 540px) {
+  #root {
+    width: 540px;
+    height: auto;
+    /* width: 100%;
+    height: 100vh;
+    box-sizing: border-box;
+    border-radius: 0; */
+  }
+  body{
+    display: flex;
+    justify-content: center;
+    height: auto;
+  }
+  .centerView{
+    display: flex;
+    justify-content: center;
+    width: 540px;
+    height: 100%;
+  }
+  .sidePanel--show{
+    width: 300px;
+  }
+  .tagsEditorNo{
+    height: 100%;
+    width: 540px;
+    position: fixed;
+    z-index: var(--z-index-tagsEditor);
+    top: 0;
+    right: 10%;
+    background-color: white;
+    overflow-x: hidden;
+    border:solid 2px red;
+    border-radius: 12px;
+  }
+  .tagsEditor{
+    height: 100%;
+    width: 540px;
+    position: auto;
+    z-index: var(--z-index-tagsEditor);
+    right: auto;
+    background-color: white;
+    border:solid 1px #e0e0e0;
+    border-radius: 12px;
+    overflow-x: hidden;
+  }
+   .noteEditor{
+    height: 100%;
+    width: 540px;
+    right: auto;
+    z-index: var(--z-index-noteEditor);
+    background-color: white;
+    border:solid 1px #e0e0e0;
+    border-radius: 12px;
+    overflow-x: hidden;
+  } 
 }
-
-

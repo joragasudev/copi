@@ -1,6 +1,6 @@
-export const ModalBackground = (props)=>{
-    const {cancelHandler} = props;
-    return (<div className="modal-background" onClick={()=>{cancelHandler()}}></div>);
+export const ModalBackground = (props,clasNames)=>{
+    const {cancelHandler,classNames} = props;
+    return (<div className={`modalBackground ${classNames? classNames: '' }`} onClick={()=>{cancelHandler()}}></div>);
 }
 
 const Modal = (props)=>{
@@ -9,7 +9,7 @@ const Modal = (props)=>{
     return(
         <>
             <ModalBackground cancelHandler={cancelHandler}/>
-            <div className={`modal ${classNames}`}>
+            <div className={`modal ${classNames? classNames: '' }`}>
                 <div className="modal__container">
                     <h1 className="modal__text ">{modalText}</h1>
                     <div className="modal__buttonsBar">
@@ -31,7 +31,7 @@ export const HelpModal = (props)=>{
     return(
         <>
         <ModalBackground cancelHandler={closeModalHandler}/>
-            <div className={`modal modalHelp ${classNames}`}>
+            <div className={`modal modal--helpModal ${classNames? classNames: ''}`}>
                 <div className="modal__container">
                     <div className="helpModal__textContainer">
                         <img className={`icon `} src="/assets/touch.svg" alt="close" />

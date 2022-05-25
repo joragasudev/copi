@@ -1,7 +1,8 @@
 import { Context } from "./Copi";
 import { useContext,memo,useState, useReducer, useEffect } from "react";
-import {AppData} from "../data/Data2";
-import Modal from "./Modal";
+import {AppData} from "../data/Data";
+import { ModalBackground } from "./Modal";
+import Modal from "./Modal"
 
 
 const TagInput =memo((props)=>{
@@ -29,11 +30,11 @@ const TagInputCreator = (props)=>{
     return(
         <div className="tagAddContainer">
 
-            <input className="input flexGrow_high" type='text' name='addTagInput' onChange={(e)=>{
+            <input className="input flexGrow_high" autoComplete="off" type='text' name='addTagInput' onChange={(e)=>{
                 setTerm(e.target.value);
             }}/>
             <button className="iconButton" onClick={()=>{saveTagHandler(term)}} disabled={buttonIsDisabled}> 
-                <img className= {`icon ${buttonIsDisabled?'icon-disabled':''}`} src="/assets/add.svg" alt="addtag" />
+                <img className= {`icon ${buttonIsDisabled?'icon--disabled':''}`} src="/assets/add.svg" alt="addtag" />
             </button>
         
         </div>
@@ -155,6 +156,11 @@ const TagsEditor=()=>{
         }
 
         return(
+            <>
+            {appView.sidePanel?
+            <ModalBackground classNames={"modalBackground--tagsEditor"} cancelHandler={()=>{setAppView({...appView,tagsEditor:false});}}/>
+            :null}
+            
             <div className="tagsEditor">
             {modalView.show
             ?<Modal 
@@ -166,9 +172,9 @@ const TagsEditor=()=>{
             :null}
             <div className="viewHeader">
                 <button className="iconButton" onClick={()=>{saveChangesHandler(); setAppView({...appView, tagsEditor:false, sidePanel:true})}} disabled={shouldDisableSaveButton()}>
-                    <img className={`icon ${shouldDisableSaveButton()? 'icon-disabled':''}`} src="/assets/arrow_back.svg" alt="back" />
+                    <img className={`icon ${shouldDisableSaveButton()? 'icon--disabled':''}`} src="/assets/arrow_back.svg" alt="back" />
                 </button>
-                <div className="sidePanelHeaders" style={ {display:"flex", justifyContent:"center", fontSize:"1.4rem" }} >Edit tags</div>
+                <div className="viewHeader__title"  >Edit tags</div>
             </div>
             <hr/>
             <TagInputCreator saveTagHandler={createNewTagHandler} allTags={allTagsLocal}/>
@@ -198,6 +204,7 @@ const TagsEditor=()=>{
                 )
             }
         </div>
+        </>
     )
 }
 

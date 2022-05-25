@@ -32,41 +32,29 @@ o algo asi. Tambien poner en la clase Data, que :"tiene mucho boilerplate, se de
 
 Refactoring:
 -los conditional rendering se pueden hacer tambien asi { condition && <ElementoCondicionado/>}
--el CSS tiene que reverse (buscar Arquitecturas de CSS o patrones CSS porque tengo muchisimo boilerplate y repeticion.), hay mucha cosa repetidad que se podria separar en mas clases. Algunos elementos tienen el CSS directamente en el tag/codigo
 -una vez reestructurado el CSS tendria que hacer media querys para que  se vea potable en desktop
--El noteCardContainer donde esta arraigado el clipboardJS no debe tener cuerpo (padding y margin y eso en 0) , sino puede copiarse cosas
-sin querer....
--Ojo cuidado, en muchos lados opero con las notas haciendo ...note (spread operator), y no tengo en cuenta las consecuencias de que los noteTags se van a copiar por ref. puede ser peligroso como no. abria que verlo
 -cambiar <divs> por <></>
--<Suspense> es para generar algo mientras se espera por otra cosa, los tipicos placeholders...
--Como hacer para que el campo de Search no te muestre las busquedas anteriores/deotro lado.
+-[DONE]Como hacer para que el campo de Search no te muestre las busquedas anteriores/deotro lado. DONE, agregando la prop autocomplete="off"
 
-Averiguar
--Con el long press que tengo ahora abria que :
-    -registrar el ancestro que sea card-container, y no el elemento que longclickie posta.
-    +Evitar que un long-press sea tambien un click (con e.preventDefault() creo q va) DONE
-    -El listener esta puesto en el document, como hacer para que no todo sea longclickeable?
 
 
 MVP/ Requerimientos / definiciones:
--Con single click o single Tap, se copia la nota(DONE).
--CRUD de Notas. (Create(DONE)/Read(DONE)/Update(DONE)/Delete(DONE))
--CRUD de Tags. (Create(DONE)/Read(DONE)/Update(DONE)/Delete(DONE))
--Mover Las notas(DONE).
--Con long tap se abre la nota para editarla?. (DONE)
+-[DONE] Con single click o single Tap, se copia la nota(DONE).
+-[DONE] CRUD de Notas. (Create(DONE)/Read(DONE)/Update(DONE)/Delete(DONE))
+-[DONE] CRUD de Tags. (Create(DONE)/Read(DONE)/Update(DONE)/Delete(DONE))
+-[DONE] Mover Las notas con DND(DONE).
+-[DONE] Con long tap se abre la nota para editarla?. (DONE)
+
+A Hacer:
+-Preparar los iconos de la PWA, y configurar el archivo correspondiente.
 
 
 BUGS:
--Si una nota esta vacia peta el copi, chequear bien eso. (sale error en el navegador.)
--Si estoy seleccionando, y toco el SidePanel, se va de seleccionar, pero las notas q seleccione siguen seleccionadas...
--Como restringir los divs de las notas para que sean fijos y no crezcan....
--Los campos de titulo y texto en el editor de notas, y los demas inputs no tiene el estilo de texto deseado.
--Si pongo "saltos de linea" con shit+enter, se guardan en la DB, pero despues al levantarlos no se ven. (a lo mejor deberian ser <p>???)
+-[DONE] Si una nota esta vacia peta al copiar, chequear bien eso. (sale error en el navegador.). Nota: Lo que peta es clipboard.js, y como resultado no copia el texto, lo cual es bueno. Por alguna razon no le gusta la string vacia '', y la toma como undefined.
+-[DONE] Si estoy seleccionando, y toco el SidePanel, se va de seleccionar, pero las notas q seleccione siguen seleccionadas... DONE: Parchado bien feo por interfaz.
+
 
 Agregar?
 -Se puede agregar un wiggle cuando se aprieta seleccionar?
 -La ultima nota copiada deberia de quedar marcada...
 -colores a las notas? esto implica un trabajito grande mas.... pero creo que es lo unico que haria falta como apra poder identificar rapido a las notas.
--Se puede poner Emojis en los titulos? quedan bien?
--animaciones de los botones, aunque sea precaria
--un "?" para explicar como funciona lo basico (tap to copy, long tap to edit y eso basicamente)

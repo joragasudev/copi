@@ -1,6 +1,6 @@
 import { Context } from "./Copi";
 import { useContext,useState } from "react";
-import { AppData } from "../data/Data2";
+import { AppData } from "../data/Data";
 import Modal from "./Modal";
 const SEARCH_DELAY_MS = 300;
 let lastTimeOutID = -1;//Este deberia estar como un useState dentro del Componente?
@@ -66,14 +66,14 @@ const TopBar = (props) =>{
             :null}
 
             {/* SidePanel button */}
-            <button className="iconButton" onClick={()=>setAppView( {...appView,sidePanel:true} )}>
-                <img className="icon " src="/assets/hamburger.svg" alt="SP" />
+            <button className="iconButton" disabled={appView.isSelecting} onClick={()=>setAppView( {...appView,sidePanel:true} )}>
+                <img className={`icon ${appView.isSelecting?'icon--disabled':''}`} src="/assets/hamburger.svg" alt="SP" />
             </button>
 
             {/* Middle searchBar and buttons */}
             <div className="topBar__middleElements">
               {/* Search Input */}
-              <input className="input topBar__middleElements__searchInput" placeholder="Search..." id="searchInput" type='text' name='search' onChange={(e)=>{delayedSetSearchTerm(e)}}/>
+              <input className="input topBar__middleElements__searchInput" placeholder="Search..." autoComplete="off" id="searchInput" type='text' name='search' onChange={(e)=>{delayedSetSearchTerm(e)}}/>
               
               {/* Lupita */}
               <button className="iconButton" onClick={()=>{document.getElementById("searchInput").focus();}}>
@@ -104,8 +104,8 @@ const TopBar = (props) =>{
                     }>
                     <img className={`
                         icon  
-                        ${disableTrashButton?'icon-disabled':''} 
-                        ${(appView.view!=='trash' || !appView.isSelecting)?'icon-hide':''}
+                        ${disableTrashButton?'icon--disabled':''} 
+                        ${(appView.view!=='trash' || !appView.isSelecting)?'icon--hide':''}
                         `} 
                     src="/assets/restore_from_trash.svg"
                     alt="SP"
@@ -117,7 +117,7 @@ const TopBar = (props) =>{
             <button className="iconButton" disabled={disableTrashButton} onClick={
                     ()=>{setModalObject(trashCanModalBehavior())}
                 }>
-                <img className={`icon ${disableTrashButton?'icon-disabled':''} ${!appView.isSelecting?'icon-hide':''}`} 
+                <img className={`icon ${disableTrashButton?'icon--disabled':''} ${!appView.isSelecting?'icon--hide':''}`} 
                     src={appView.view==='trash'?"/assets/delete_forever.svg":"/assets/trashCan.svg"} 
                     alt="SP"
                 />

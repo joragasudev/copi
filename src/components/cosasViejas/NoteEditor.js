@@ -57,7 +57,7 @@ const NoteEditor = ()=>{
     //         noteTags = ([...tags]);
     // } 
     return(
-        <div className={`note-editor ${isNoteEditorVisible?'note-editor-show' : ''}`}>
+        <div className={`noteEditor `}>
             <button onClick={()=>{toggleNoteEditor()}} >Cerrar</button>
             <button onClick={()=>{
                 if(noteToEdit===null)

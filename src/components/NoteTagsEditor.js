@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState ,memo } from "react";
-import {AppData} from "../data/Data2";
+import {AppData} from "../data/Data";
 
 
 
 const NoteTagsEditor = memo((props)=>{
-    console.log('TagsEditor rendering...');
     const {/*note*/noteTags,saveNoteTagsHandler,showTagsEditorHandler} = props;
     const [thisNoteTags,setThisNoteTags] = useState(noteTags);//[1,2,55,74]
     const [filteredTagsAvailable,setFilteredTagsAvailable] = useState(AppData.allTagsCache);//[{id:74, tagName:'X'}]
@@ -58,7 +57,7 @@ const NoteTagsEditor = memo((props)=>{
                 <button className="iconButton" onClick={()=>{saveButtonHandler(); showTagsEditorHandler(false);}}  >
                     <img className={`icon `} src="/assets/arrow_back.svg" alt="back" />
                 </button>
-                <div className="sidePanelHeaders centerHeader" >Edit note tags</div>
+                <div className="viewHeader__title" >Edit note tags</div>
             </div>
 
             <hr/>
@@ -109,7 +108,7 @@ const TagFilter = (props)=>{
         <>
             
             <div className="tagAddContainer">
-                <input className="input flexGrow_high" id="searchTags" type='text' name='searchTags' onChange={(e)=>{
+                <input className="input flexGrow_high" autoComplete="off" id="searchTags" type='text' name='searchTags' onChange={(e)=>{
                     filterChangeHandler(e.target.value);
                     setTerm(e.target.value);
                 }}/>
@@ -117,7 +116,7 @@ const TagFilter = (props)=>{
                     <img className="icon " src={"assets/search.svg"} alt="magGlass" />
                 </button>
                 <button className="iconButton" onClick={()=>{addTagHandler(term)}} disabled={!showCreateTagButton}> 
-                    <img className= {`icon ${!showCreateTagButton?'icon-disabled':''}`} src="/assets/add.svg" alt="addtag" />
+                    <img className= {`icon ${!showCreateTagButton?'icon--disabled':''}`} src="/assets/add.svg" alt="addtag" />
                 </button>
             </div>
             

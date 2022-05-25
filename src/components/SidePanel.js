@@ -1,7 +1,8 @@
 import { Context } from "./Copi";
 import { useContext,useState } from "react";
-import { AppData } from "../data/Data2";
+import { AppData } from "../data/Data";
 import { ModalBackground,HelpModal } from "./Modal";
+
 
 
 const TagList=(props)=>{
@@ -40,13 +41,13 @@ const SidePanel = ()=>{
             :null}
 
         <div className={`sidePanel ${appView.sidePanel?'sidePanel--show' : ''}`} onClick={()=>{/*setView('default');*/}}>
-            <div className="sidePanelHeaders" style={ {display:"flex", justifyContent:"center", fontSize:"1.4rem" }} >COPI</div>
+            <div className="sidePanelHeaders sidePanelHeaders--appTitle" >COPI</div>
             <div className="sidePanelTagContainer" onClick={()=>{setAppView({...appView,view:'default',sidePanel:false}); setNoteList(AppData.getNotes());}}>
                 <img className="icon" src="/assets/note.svg" alt="allNotes" />
                 <div className="sidePanelHeaders">NOTES</div>
             </div> 
             <hr/>
-            <div style={ {display:"flex", justifyContent:"space-between", margin:"0px 8px 0px 8px"} }>
+            <div className="sidePanelHeaders__tagsHeaderContainer">
                 <div className="sidePanelHeaders">TAGS</div>
                 <div onClick={(e)=>{setAppView({...appView,tagsEditor:true/*, sidePanel:false */});e.stopPropagation();}} className="sidePanelHeaders">EDIT</div>
             </div>

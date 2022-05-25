@@ -6,7 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { DragDropContext } from "react-beautiful-dnd";
 import { Droppable } from "react-beautiful-dnd";
 import { Draggable } from "react-beautiful-dnd";
-import { AppData } from "../data/Data2";
+import { AppData } from "../data/Data";
 import TopBar from "./TopBar";
 //NoteList deberia ser el padre de una serie de Componentes Memoizados con memo (los de la lista).
 
@@ -58,7 +58,6 @@ const NoteCard = memo((props) =>{
          }
     },[note,appView]);
 
-// style={isSelected?{backgroundColor:"purple"}:{}
 
     return(
     <div className="noteCard noteCardContainer--white" ref={noteCardRef} 
@@ -181,6 +180,7 @@ const MainScreen = () =>{
 
     return(
         <div className="topBarAndNoteList">
+        {/* TopBar (SideMenu button, search bar, and select notes button) */}
         <TopBar 
             sendNotesToTrashHandler={sendNotesToTrashHandler}
             sendNotesInTagsToTrashHandler = {sendNotesInTagsToTrashHandler}
@@ -190,8 +190,10 @@ const MainScreen = () =>{
             selection = {selectedNotesKeys}
             />
 
+        {/* List Title  */}
         <div className="listTitle ellipsis">{listTitle()}</div>
 
+        {/* Drag and drop Notes List */}
         <DragDropContext onDragEnd={(dragEndObject)=>{ //DRAG HANDLER
             if (dragEndObject.destination != null){
                 const sourceKey = noteList[dragEndObject.source.index].key;

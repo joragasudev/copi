@@ -1,6 +1,6 @@
 import { Context } from "./Copi";
-import { useContext,useRef, useState,memo } from "react";
-import {AppData} from "../data/Data2";
+import { useContext,useRef, useState,memo, useEffect } from "react";
+import {AppData} from "../data/Data";
 import NoteTagsEditor from "./NoteTagsEditor";
 
 //if id===null -> es una nueva nota, sino es una edicion de nota.
@@ -26,9 +26,9 @@ const TextInput = memo((props)=>{
         setValue(value);
         textOnChangeHandler(value);
     }
-//rows="4" cols="50"
+
     return(
-    <textarea className="textInput" placeholder="Note" id="text-input" name="text" 
+    <textarea className="noteTextInput" placeholder="Note" id="text-input" name="text" 
             value={value} onChange={(e)=>{onChangeHandler(e.target.value)}}>  
     </textarea>
     )
@@ -53,13 +53,17 @@ const NoteEditor = ()=>{
         
         return false;
     }
+    useEffect(()=>{
+        if(!noteToEdit)
+         document.getElementById('text-input').focus();
+    },[])
 
     return(
-        <div id="note-editor"  className={`note-editor ${appView.noteEditor? 'note-editor-show' : ''}`}>
-            <div className="note-editor-container">
+        <div className="centerView">
 
-            {/* <div className="topButtonsBar"> */}
-            <div className="title-container">
+        <div id="noteEditor"  className={`noteEditor`}>
+            <div className="noteEditor__container">
+            <div className="viewHeader">
             {/* Accept button */}
                 <button className="iconButton" onClick={()=>{
                     if(noteToEdit===null){//(new note)
@@ -102,14 +106,14 @@ const NoteEditor = ()=>{
             noteTags.length >0?
             AppData.getTagsByIds(noteTags).map((tag)=>
             <div className="tagBubbleContainer" key={tag.key}>
-             <div onClick={()=>{setShowTagEditor(true)}} className="tagBubble" > 
+             <div onClick={()=>{setShowTagEditor(true)}} className="tagBubbleContainer__tagBubble" > 
                 <img className={`icon`} src="/assets/label.svg" alt="tag" />
-                <div className="tagBubbleText">{tag.name}</div> 
+                <div className="ellipsis">{tag.name}</div> 
              </div>
              </div>
              )
              :<div className="tagBubbleContainer"> 
-                <div onClick={()=>{setShowTagEditor(true)}} className="tagBubble"> 
+                <div onClick={()=>{setShowTagEditor(true)}} className="tagBubbleContainer__tagBubble"> 
                 <img className={`icon`} src="/assets/label.svg" alt="tag" />
                 <div>Tags</div> 
                 </div>  
@@ -122,6 +126,7 @@ const NoteEditor = ()=>{
             {showTagEditor? <NoteTagsEditor /*note={noteToEdit}*/ noteTags={noteTags} saveNoteTagsHandler={setNoteTags} showTagsEditorHandler = {setShowTagEditor}/> : null}
         </div>
         </div>
+    </div>
     );
 }
 

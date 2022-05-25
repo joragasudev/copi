@@ -5,7 +5,10 @@ const AddNoteButton = ()=>{
     const {setNoteToEdit,appView,setAppView} = useContext(Context);
 
     return (
-            <button className="addNoteButton" onClick={()=>{setNoteToEdit(null);setAppView({...appView, noteEditor:true,sidePanel:false,tagsEditor:false})}}>
+            <button className={`addNoteButton ${appView.noteEditor? 'addNoteButton--hide':''}`}
+             onClick={()=>{setNoteToEdit(null);setAppView({...appView, noteEditor:true,sidePanel:false,tagsEditor:false})}}
+             disable={appView.noteEditor?'true':'false'}   
+             >
                 <img src={"assets/add.svg"} alt="addNote" />
             </button>
     )
