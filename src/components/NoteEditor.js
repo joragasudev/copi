@@ -132,6 +132,7 @@ const NoteEditor = ()=>{
 
 const NoteEditorContainer = () =>{
     const {appView} = useContext(Context);
+    //const {noteToEdit2}= props;
     // return(<>{(appView.view==='noteEditor')?<NoteEditor />:null}</>);
     return(<>{appView.noteEditor?<NoteEditor />:null}</>);
 }

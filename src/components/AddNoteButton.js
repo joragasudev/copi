@@ -2,6 +2,7 @@ import { Context } from "./Copi";
 import { useContext } from "react";
 
 const AddNoteButton = ()=>{
+    //const {setNoteToEdit2} = props;
     const {setNoteToEdit,appView,setAppView} = useContext(Context);
 
     return (

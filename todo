@@ -32,7 +32,7 @@ o algo asi. Tambien poner en la clase Data, que :"tiene mucho boilerplate, se de
 
 Refactoring:
 -los conditional rendering se pueden hacer tambien asi { condition && <ElementoCondicionado/>}
--una vez reestructurado el CSS tendria que hacer media querys para que  se vea potable en desktop
+-[DONE]una vez reestructurado el CSS tendria que hacer media querys para que  se vea potable en desktop
 -cambiar <divs> por <></>
 -[DONE]Como hacer para que el campo de Search no te muestre las busquedas anteriores/deotro lado. DONE, agregando la prop autocomplete="off"
 
@@ -46,7 +46,9 @@ MVP/ Requerimientos / definiciones:
 -[DONE] Con long tap se abre la nota para editarla?. (DONE)
 
 A Hacer:
+-Agregar un twitter de autor?
 -Preparar los iconos de la PWA, y configurar el archivo correspondiente.
+
 
 
 BUGS:

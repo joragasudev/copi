@@ -9,7 +9,6 @@ const TopBar = (props) =>{
     const {sendNotesToTrashHandler,sendNotesInTagsToTrashHandler,deleteNotesHandler,restoreNotesHandler,selection,clearSelection} = props;
     const {setNoteList,appView,setAppView} = useContext(Context);
     const [modalObject,setModalObject] = useState({show:false});
-    console.log('re-rendering','AppView es:',appView);
 
     const delayedSetSearchTerm = (e)=>{
         clearTimeout(lastTimeOutID);
@@ -90,7 +89,7 @@ const TopBar = (props) =>{
                     }
                     }}>
 
-                <img className="icon " src={appView.isSelecting? "/assets/close.svg":"/assets/checklist_selectPonele2.svg"} alt="SP" />
+                <img className="icon " src={appView.isSelecting? "/assets/close.svg":"/assets/checklist_select.svg"} alt="SP" />
               </button>
 
               {/* Restore Tachito */}

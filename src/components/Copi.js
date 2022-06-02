@@ -10,8 +10,8 @@ import './styles.css';
 
 export const Context = createContext({}); 
 
-//appView = {view:'default'|'tagFiltered'|'trash' , tagsEditor:true|false, sidePanel:true|false, noteEditor:true|false, tagFilter:int, isSelecting:true|false}
 const DefaultProvider = ({children})=>{
+    //appView = {view:'default'|'tagFiltered'|'trash' , tagsEditor:true|false, sidePanel:true|false, noteEditor:true|false, tagFilter:int, isSelecting:true|false}
     const [appView,setAppView] = useState({view:'default'});
     const [noteList,setNoteList] = useState(null);
     const [noteToEdit,setNoteToEdit] = useState(null);
@@ -44,10 +44,7 @@ const Copi = () => {
                 <SidePanel/>
                 <NoteEditorContainer/>
                 <TagsEditorContainer/>
-                <div className="mainScreen">
-                    <MainScreen/>
-                    <AddNoteButton/>
-                </div>
+                <MainScreen/>
             </DefaultProvider>
         </>
     )

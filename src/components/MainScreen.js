@@ -8,17 +8,17 @@ import { Droppable } from "react-beautiful-dnd";
 import { Draggable } from "react-beautiful-dnd";
 import { AppData } from "../data/Data";
 import TopBar from "./TopBar";
-//NoteList deberia ser el padre de una serie de Componentes Memoizados con memo (los de la lista).
+import AddNoteButton from "./AddNoteButton";
 
 const NoteCard = memo((props) =>{
     const {isSelected,note,selectNoteHandler} = props;
-    const {setNoteToEdit,appView,setAppView,setNoteList} = useContext(Context);
+    const {setNoteToEdit,appView,setAppView} = useContext(Context);
     const noteCardRef = useRef(null);
 
     const clickHandler = (event) => {
         if (appView.isSelecting) {
             selectNoteHandler(note.key);
-            event.stopPropagation(); //previene copiado...
+            event.stopPropagation(); //Prevents selecting a note from being copied to the clipboard.
         }
         else{//react-toastify
             const toastText = AppData.truncateText(note.title);
@@ -35,35 +35,28 @@ const NoteCard = memo((props) =>{
             });
         }
       };
-  
+      
 
-    function openNoteEditor(event,note){
-        setNoteToEdit(note);
-        setAppView({...appView, noteEditor:true,sidePanel:false,tagsEditor:false});
-        event.stopPropagation();
-    }
-
-    //esto esta medio feito...
     useEffect(()=>{
-        const fn = (e)=>{
+        const longPressEffect = (e)=>{
             setNoteToEdit(note);
             setAppView({...appView, noteEditor:true,sidePanel:false,tagsEditor:false});
             e.stopPropagation(); 
         }
         const noteRef = noteCardRef.current;
-        noteRef.addEventListener('long-press', fn);
+        noteRef.addEventListener('long-press', longPressEffect);
+
         return () => { 
-            if (noteRef)
-                noteRef.removeEventListener('long-press', fn); 
+            if (noteRef){
+                noteRef.removeEventListener('long-press', longPressEffect);
+            }
          }
     },[note,appView]);
 
-
     return(
-    <div className="noteCard noteCardContainer--white" ref={noteCardRef} 
+    <div className={`noteCard ${isSelected?'noteCardContainer--selected':''} noteCardContainer--white`} ref={noteCardRef} 
     onClick={(e)=>{clickHandler(e);}}
-    style={isSelected?{border: "1px solid black",boxShadow:"0 1px 2px 0 rgba(60,64,67,0.302),0 1px 3px 1px rgba(60,64,67,0.149)" }:{} 
-    }>
+    >
         <div className="ellipsis noteCardContainer__title">
             {note.title}
         </div>
@@ -77,14 +70,6 @@ const NoteCard = memo((props) =>{
 
 const ListContent = memo((props) => {
     const {noteList,isDragDisabled,selectedNotesKeys,setSelectedNotesKeys} = props;
-    //const [selectedNotesKeys,setSelectedNotesKeys] = useState([]);
-    const {appView,setAppView} = useContext(Context);
-
-    //esto esta medio feo (renderiza 2 veces.)
-    // useEffect(()=>{
-    //     if(!appView.isSelecting)
-    //         setSelectedNotesKeys([]);
-    // },[appView]);
 
     const selectANote = (noteKey)=>{//(toggle)
         selectedNotesKeys.includes(noteKey)
@@ -118,9 +103,10 @@ const ListContent = memo((props) => {
 
     return (
     <>
-    {listContent}
-    <ToastContainer/>
-    </>)
+        {listContent}
+        <ToastContainer/>
+    </>
+    )
 })
 
 const MainScreen = () =>{
@@ -169,17 +155,18 @@ const MainScreen = () =>{
             return ('TAG: '+AppData.getTagName(appView.tagFilter))
     }
 
-
+    // RETURN
     if (!noteList.length)
         return (
-            <div className="topBarAndNoteList">
+            <div className="mainScreen">
                 <TopBar sendNotesToTrashHandler={sendNotesToTrashHandler} clearSelection={clearSelection}/>
                 <div className="listTitle">{listTitle()}</div>
+                <AddNoteButton/>
             </div>
         );
 
     return(
-        <div className="topBarAndNoteList">
+        <div className="mainScreen">
         {/* TopBar (SideMenu button, search bar, and select notes button) */}
         <TopBar 
             sendNotesToTrashHandler={sendNotesToTrashHandler}
@@ -217,6 +204,9 @@ const MainScreen = () =>{
                 )}
             </Droppable>
         </DragDropContext>
+
+        {/* new Note button (+) */}
+        <AddNoteButton/>
         </div>
     )
 }

@@ -2,6 +2,7 @@ import { Context } from "./Copi";
 import { useContext,useState } from "react";
 import { AppData } from "../data/Data";
 import { ModalBackground,HelpModal } from "./Modal";
+import App from "../App";
 
 
 
@@ -49,21 +50,26 @@ const SidePanel = ()=>{
             <hr/>
             <div className="sidePanelHeaders__tagsHeaderContainer">
                 <div className="sidePanelHeaders">TAGS</div>
-                <div onClick={(e)=>{setAppView({...appView,tagsEditor:true/*, sidePanel:false */});e.stopPropagation();}} className="sidePanelHeaders">EDIT</div>
+                <div onClick={(e)=>{setAppView({...appView,tagsEditor:true});e.stopPropagation();}} className="sidePanelHeaders">EDIT</div>
             </div>
             
             <TagList clickTagHandler={clickTagHandler}/>
             <hr/>
 
             <div className="sidePanelTagContainer" onClick={()=>{setAppView({...appView,view:'trash',sidePanel:false}); setNoteList(AppData.getTrashedNotes());}}>
-                <img className="icon" src="/assets/trashCan.svg" alt="SP" />
+                <img className="icon" src="/assets/trashCan.svg" alt="deleted" />
                 <div className="sidePanelHeaders">DELETED</div>
             </div>    
 
             <div className="sidePanelTagContainer" onClick={()=>{setAppView({...appView,sidePanel:false, helpModal:true})}}>
-                <img className="icon" src="/assets/help.svg" alt="SP" />
+                <img className="icon" src="/assets/help.svg" alt="help" />
                 <div className="sidePanelHeaders">HELP</div>
             </div>  
+     
+            {/* <div className="sidePanelTagContainer" onClick={()=>{AppData.promptInstallApp()} }>
+                <img className="icon" src={AppData.isMobile()? "/assets/install_mobile.svg" : "/assets/install_desktop.svg"} alt="install" />
+                <div className="sidePanelHeaders">INSTALL</div>
+            </div>  */}
         </div>
         </>
     );

@@ -22,7 +22,7 @@ notesOrderByTagCache = [ {key:12 value:[1,2,3,4]}, {key:19 value:[45,1]} , {key:
 class Data{
 
     constructor(){
-        this.DBNAME = 'Copi-App-2';
+        this.DBNAME = 'Copi-App';
         this.DBVERSION = 1;
         this.CONFIG_OBJECTSTORE_NAME = 'config'
         this.CONFIG_OBJECTSTORE_KEYPATH = 'name'
@@ -481,7 +481,6 @@ restoreNotes(keysArray){
             return {...acc};
         },{});
 
-        console.log(notesOrderByTagToUpdate);
         //Updating notesOrderByTag 
         for (const tagKey in notesOrderByTagToUpdate){
             let notesOrderByTagRequest =  notesOrderByTagObjectStore.get(parseInt(tagKey)); 
@@ -505,7 +504,6 @@ restoreNotes(keysArray){
 
             //updating notesOrderByTagCache
             const tagsToUpdate = Object.keys(notesOrderByTagToUpdate).map((tagKeyString)=>parseInt(tagKeyString)); 
-            console.log("tagsToUpdate",tagsToUpdate);
 
             this.notesOrderByTagCache = this.notesOrderByTagCache.map((notesOrder)=>{
                 if (tagsToUpdate.includes(notesOrder.tagKey)){
@@ -570,8 +568,6 @@ deleteNotes(keysArray){
                 return ({tagKey:notesOrder.tagKey, value:newNotesOrderValue});
             });
 
-            console.log("notesOderBtTagCache luego de eliminar:",this.notesOrderByTagCache);
-            // resolve(this.getNotes());
             resolve(this.getTrashedNotes());
         }
     }); 
@@ -632,7 +628,6 @@ reorderNotes (sourceKey,destinationKey){
 }
 
 reorderNotesFilteredByTag (sourceKey,destinationKey,tagKey){
-    console.log(`reorderNotesFilterderByTag: sourceKey:${sourceKey} destinationKey:${destinationKey} tagKey:${tagKey}`);
     const index = this.notesOrderByTagCache.findIndex((e)=>e.tagKey === tagKey);
     const reorderedNotesByTag = [...this.notesOrderByTagCache.find((e)=>e.tagKey === tagKey).value];
 
@@ -642,15 +637,11 @@ reorderNotesFilteredByTag (sourceKey,destinationKey,tagKey){
         0,
         reorderedNotesByTag.splice(reorderedNotesByTag.indexOf(sourceKey),1)[0]);
 
-    console.log(reorderedNotesByTag);   
     //replacing the object with the new one
     this.notesOrderByTagCache = [...this.notesOrderByTagCache.slice(0,index),
         {tagKey:tagKey, value:[...reorderedNotesByTag]},
         ...this.notesOrderByTagCache.slice(index+1)]; 
         
-    console.log(this.notesOrderByTagCache);
-
-
     //asynchronously update the notesOrderByTag in the DB.
     let transaction = this.DBConecction.transaction([this.NOTESORDERBYTAG_OBJECTSTORE_NAME], "readwrite");
     let notesOrderByTagObjectStore = transaction.objectStore(this.NOTESORDERBYTAG_OBJECTSTORE_NAME); 
@@ -880,34 +871,42 @@ existTagWithKey(key){
     return theTag!==undefined;
 }
 
+/*Experimiental PWA Installation 
+async promptInstallApp(){
+    console.log('deferredPrompt es: ', deferredPrompt);
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('outcome es:', outcome);
+        if (outcome === 'accepted') {
+            deferredPrompt = null;
+        }
+    }
+}
+isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+isAppInstalled(){
+    console.log(navigator.getInstalledRelatedApps());
+}
+installApp(){
+    //Experimental does not work
+    let e = new window.BeforeInstallPromptEvent('instalar', {
+        view: window,
+        bubbles: true,
+        cancelable: true
+      });
+    window.dispatchEvent(e);
+}
+*/
+  
 
 }//end class Data
 export const AppData = new Data();
 
-////////////////////LONG-PRESS-EVENT (https://github.com/john-doherty/long-press-event) //////////////////////////
-/*
-// the event bubbles, so you can listen at the root level
-document.addEventListener('long-press', function(e) {
-    //IMPORTANTE: Si esto lo hago en NoteList.js (en </NoteCard>) No hace falta ponerlo aca!. Cada NoteCard tendria su propio eventListener....
-    //Con respecto a en que parte se hace el click en la noteCard, se pueden hacer 2 cosas aca: 
-    //1) NO ANDA BIEN Dejar que el evento suba con Bubbling y simplemente aca preguntamos si e.target.matches('.noteCardContainer') obtenemos su id con los dataset y ahi lo que querramos.
-    //   El método element.matches('cssSelector') comprueba si el Element sería seleccionable por el selector CSS especificado en la cadena; en caso contrario, retorna false.
-    //   Este no andaria bien, porque si hacemos click en un elemento interno, obviamente matches no va a andar, tendria que tener un matches con muchas cosas... mejor el 2)
-    //2) Usar e.target.closest('.noteCardContainer') para obtener el elemento noteCardContainer mas cercano al disparo del evento, y obtenemos su id con los dataset y ahi lo que querramos.
-    
-    console.log(e);
-    const element = e.target;
-    const elementCardContainer = element.closest('.noteCardContainer');//el elemento mas cercano de forma ascendiente o el mismo que cumpla con el selector.
-    if(elementCardContainer){
-     const noteKey = elementCardContainer.dataset.noteKey;
-     console.log(`*Abro el editor para la noteId:${noteKey} , y prevengo default click event*`);
-     e.preventDefault();// o e.stopPropagation();?
-    }
-  });
-  */
-////////////////////LONG-PRESS-EVENT//////////////////////////
 
-////////////////////CLIPBOARDJS (clipboardjs.com)///////////////////////////////////
+
+////////////////////CLIPBOARDJS (clipboardjs.com)//////////////////
 // const clipboard = new ClipboardJS('.card-container');
 const clipboard = new ClipboardJS('.noteCardContainer', {
     text: function(trigger) {
@@ -916,31 +915,26 @@ const clipboard = new ClipboardJS('.noteCardContainer', {
     }
 });
 clipboard.on('success', function(e) {
-    console.log('Event object:',e);
-    console.log(`Copied: ${(e.text)}`);
+    // console.log('Event object:',e);
+    // console.log(`Copied: ${(e.text)}`);
     e.clearSelection();
 });
 clipboard.on('error', function(e) {
-    console.log('Error event object:',e);
-    console.error('Action:', e.action);
-    console.error('Trigger:', e.trigger);
+    // console.log('Error event object:',e);
+    // console.error('Action:', e.action);
+    // console.error('Trigger:', e.trigger);
 });
 ////////////////////CLIPBOARDJS///////////////////////////////////
-/*
-window.addEventListener('resize', () => {
-    // We execute the same script as before
-    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-    console.log("VW:",vw,"VH:",vh);
-});
-*/
+
+/*Experimental PWA installation
+let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
     // Previene a la mini barra de información que aparezca en smartphones
-    e.preventDefault();
+    //e.preventDefault();
     // Guarda el evento para que se dispare más tarde
-    //deferredPrompt = e;
+    deferredPrompt = e;
     // Actualizar la IU para notificarle al usuario que se puede instalar tu PWA
     //showInstallPromotion();
     // De manera opcional, envía el evento de analíticos para saber si se mostró la promoción a a instalación del PWA
     console.log(`'beforeinstallprompt' event was fired.`,e);
-  });
+});*/

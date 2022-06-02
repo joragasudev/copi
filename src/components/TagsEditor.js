@@ -115,7 +115,7 @@ const TagsEditor=()=>{
         const [allTagsLocal,setAllTagsLocal] = useState(AppData.allTagsCache); // { [{key:0, name:'cocina'},{key:10, name:'perros},...]
         const [tagsChanges,dispatchTagsChanges] = useReducer(tagsChangerReducer,[]);
         const [modalView,setModalView] = useState({show:false});
-        console.log("alltagslocal",allTagsLocal); 
+        
         const updateTagNameHandler = (localTag,newTagName)=>{
             dispatchTagsChanges({type:'update', payload:{...localTag, name:newTagName}}); //{type:'update' , payload:{{key:2,name:'newName'}} }
             const index = allTagsLocal.findIndex ((tag)=>{ return tag.key === localTag.key });

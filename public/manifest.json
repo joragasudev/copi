@@ -1,6 +1,7 @@
 {
   "short_name": "Copi",
-  "name": "Copi: Copy notes with one click",
+  "name": "Copi",
+  "description": "Copy notes with a single tap.",
   "icons": [
     {
       "src": "favicon.ico",
