@@ -1,23 +1,22 @@
 import { Context } from "./Copi";
-import { useContext,useState } from "react";
+import { useContext,useEffect,useState } from "react";
 import { AppData } from "../data/Data";
 import Modal from "./Modal";
+
 const SEARCH_DELAY_MS = 300;
-let lastTimeOutID = -1;//Este deberia estar como un useState dentro del Componente?
+let lastTimeOutID = -1;
 
 const TopBar = (props) =>{
     const {sendNotesToTrashHandler,sendNotesInTagsToTrashHandler,deleteNotesHandler,restoreNotesHandler,selection,clearSelection} = props;
-    const {setNoteList,appView,setAppView} = useContext(Context);
+    const {noteList,setNoteList,appView,setAppView} = useContext(Context);
     const [modalObject,setModalObject] = useState({show:false});
 
     const delayedSetSearchTerm = (e)=>{
         clearTimeout(lastTimeOutID);
         lastTimeOutID = setTimeout(() => {
-            //TODO Se puede hacer con useEffect esto? combiene?
             setNoteList(AppData.searchNotes(e.target.value,appView));
         }, SEARCH_DELAY_MS);    
     }
-    
 
     const trashCanModalBehavior = ()=>{
 
@@ -47,15 +46,10 @@ const TopBar = (props) =>{
     }
 
     const disableTrashButton=(selection?selection.length===0:false);
-    const hideRestoreButton = !appView.view === 'trash';
 
     return (
         <div className="topBar">
-            {/* Este Modal:
-                En 'default' deberia enviar a trash y retornar la vista default...
-                En 'tagFiltered' deberia enviar a trash y retornar la misma vista tagfiltered... 
-                En 'trash', deberia deletearlas de la DB y retornar la vista trash...
-                En 'trash', con otro boton o como sea, se tiene que poder restaurar.  */}
+            {/* Confirmation Modal */}
             {modalObject.show?
             <Modal
                 acceptHandler={modalObject.modalAcceptHandler}
@@ -74,13 +68,13 @@ const TopBar = (props) =>{
               {/* Search Input */}
               <input className="input topBar__middleElements__searchInput" placeholder="Search..." autoComplete="off" id="searchInput" type='text' name='search' onChange={(e)=>{delayedSetSearchTerm(e)}}/>
               
-              {/* Lupita */}
+              {/* magGlass */}
               <button className="iconButton" onClick={()=>{document.getElementById("searchInput").focus();}}>
                 <img className="icon " src={"assets/search.svg"} alt="magGlass" />
               </button>
             
-              {/* Boton: Seleccionar/Cancelar X */}
-              <button className={"iconButton"}  onClick={()=>{
+              {/* Button: Select notes / Cancel selection */}
+              <button className={"iconButton"} disabled={noteList.length===0} onClick={()=>{
                     if(appView.isSelecting){
                         setAppView({...appView, isSelecting:false});
                         clearSelection(); 
@@ -89,10 +83,10 @@ const TopBar = (props) =>{
                     }
                     }}>
 
-                <img className="icon " src={appView.isSelecting? "/assets/close.svg":"/assets/checklist_select.svg"} alt="SP" />
+                <img className={`icon ${noteList.length===0? 'icon--disabled' : ''}`} src={appView.isSelecting? "/assets/close.svg":"/assets/checklist_select.svg"} alt="SP" />
               </button>
 
-              {/* Restore Tachito */}
+              {/* Restore */}
               <button className="iconButton" disabled={(appView.view!=='trash' || !appView.isSelecting)} onClick={
                         ()=>{setModalObject({
                             show:true,
@@ -112,10 +106,8 @@ const TopBar = (props) =>{
               </button>
             </div>
 
-            {/* Tachito: Borrar("confirmar"). Activa el modal </Modal>*/} 
-            <button className="iconButton" disabled={disableTrashButton} onClick={
-                    ()=>{setModalObject(trashCanModalBehavior())}
-                }>
+            {/* Delete. invokes the confimation Modal*/} 
+            <button className="iconButton" disabled={disableTrashButton} onClick={()=>{setModalObject(trashCanModalBehavior())}}>
                 <img className={`icon ${disableTrashButton?'icon--disabled':''} ${!appView.isSelecting?'icon--hide':''}`} 
                     src={appView.view==='trash'?"/assets/delete_forever.svg":"/assets/trashCan.svg"} 
                     alt="SP"

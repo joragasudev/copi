@@ -4,7 +4,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 //import * as serviceWorkerRegistration from './serviceWorkerRegistration'; <-- currently using a custom service worker.
 
-//service worker pp
+//custom service worker.
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(error => {
     console.log(error.message);

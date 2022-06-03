@@ -1,20 +1,18 @@
 import { Context } from "./Copi";
-import { useContext,memo,useState, useReducer, useEffect } from "react";
+import { useContext,memo,useState, useReducer } from "react";
 import {AppData} from "../data/Data";
 import { ModalBackground } from "./Modal";
 import Modal from "./Modal"
 
 
-const TagInput =memo((props)=>{
+const TagInput = memo((props)=>{
     const {tagName,tagChangeHandler} = props;
     const [value,setValue] = useState(tagName);
     const onChangeHandler=(value)=>{
         setValue(value);
         tagChangeHandler(value);
     }
-    return(
-        <input className="input flexGrow_high flexGrow_high" type="text" value={value} onChange={(e)=>onChangeHandler(e.target.value)}></input>
-        )
+    return(<input className="input flexGrow_high flexGrow_high" type="text" value={value} onChange={(e)=>onChangeHandler(e.target.value)}></input>);
 });
 
 const TagInputCreator = (props)=>{
@@ -29,32 +27,21 @@ const TagInputCreator = (props)=>{
 
     return(
         <div className="tagAddContainer">
-
             <input className="input flexGrow_high" autoComplete="off" type='text' name='addTagInput' onChange={(e)=>{
                 setTerm(e.target.value);
             }}/>
             <button className="iconButton" onClick={()=>{saveTagHandler(term)}} disabled={buttonIsDisabled}> 
                 <img className= {`icon ${buttonIsDisabled?'icon--disabled':''}`} src="/assets/add.svg" alt="addtag" />
             </button>
-        
         </div>
     )
 }
 
-//En la BD el orden debe ser delete then create then update
-//[
-//action ={type: 'delete', payload:{localKey:1, id:12, name:'cocina'} },
-//action ={type: 'create', payload:{localKey:13, name:'newTagName'} },
-//action ={type: 'update', payload:{key:5, name:'updatedTagName'} },
-//action ={type: 'update', payload:{localKey:8 , name:'updatedTagName'} },
-//no esta.
-//]
-//Si Creo y luego actualizo, solo se debe quedar la payload de Crear (si estoy en update, y no tiene id, se genera una payload de create.)
 
+//tagsChangerReducer generates an array with the changes that has to be applied to the tags table in the DB.
 const tagsChangerReducer = (changesActions,action)=> {
     switch(action.type){
-        case 'delete':{//busco por localKey=> Si es 'create', directamente lo saco. Si era 'update' con id, entonces le remplazo el type por 'delete'
-            //Si no esta, hay q crearlo (va a ser con id si o si)
+        case 'delete':{
             let index = 0;
             let lastChange = null;
             for (let changeAction of changesActions){
@@ -69,22 +56,16 @@ const tagsChangerReducer = (changesActions,action)=> {
                if(lastChange.type ==='create')
                     return [...changesActions.slice(0,index),...changesActions.slice(index+1)]; 
                if(lastChange.type === 'update'){
-                //    lastChange.type = 'delete'; //No se porque asi petaba....
-                //    return [...changesState];
                    return [...changesActions.slice(0,index),
                     {type:'delete', payload:{key:lastChange.payload.key, name:lastChange.payload.name}},
                     ...changesActions.slice(index+1)]; 
-
                }
             }else{
                 return ([action,...changesActions]);
             }
-            
-
         }break;
 
-        case 'update':{ //buscas por key=> Si es create o update, solo le cambias el name. Si no existe, lo creas con update.
-            //action ={type: 'update', payload:{key:5, name:'updatedTagName'} },
+        case 'update':{ 
             let lastChange = null;
             for (let changeAction of changesActions){
                if( changeAction.payload.key === action.payload.key){
@@ -100,24 +81,27 @@ const tagsChangerReducer = (changesActions,action)=> {
         }
 
         case 'create':{
-            // tendria que chequear que el nuevo nombre sea compatible.... (no se deberia dejar directamente en la interfaz....)
             return ([action,...changesActions]);
         }
+
         default:
             return changesActions
     }
 }
 
-let localKeyId = 0; //Id negativas que se usan provisoriamente para los nuevos tags creados en esta pantalla....
+
+//Fake negatives ids are created when you type a new tag to use as react key in collections.
+//This is so because a new tag that has not yet been saved in the DB does not have an id yet.
+let localKeyId = 0;
 
 const TagsEditor=()=>{
         const {setAppView,appView,setNoteList} = useContext(Context);
-        const [allTagsLocal,setAllTagsLocal] = useState(AppData.allTagsCache); // { [{key:0, name:'cocina'},{key:10, name:'perros},...]
+        const [allTagsLocal,setAllTagsLocal] = useState(AppData.allTagsCache);
         const [tagsChanges,dispatchTagsChanges] = useReducer(tagsChangerReducer,[]);
         const [modalView,setModalView] = useState({show:false});
         
         const updateTagNameHandler = (localTag,newTagName)=>{
-            dispatchTagsChanges({type:'update', payload:{...localTag, name:newTagName}}); //{type:'update' , payload:{{key:2,name:'newName'}} }
+            dispatchTagsChanges({type:'update', payload:{...localTag, name:newTagName}});
             const index = allTagsLocal.findIndex ((tag)=>{ return tag.key === localTag.key });
             setAllTagsLocal( [...allTagsLocal.slice(0,index),{...localTag,name:newTagName},...allTagsLocal.slice(index+1)] );
         }
@@ -129,10 +113,9 @@ const TagsEditor=()=>{
         const createNewTagHandler=(newTagName)=>{
             const payload ={key:--localKeyId, name:newTagName} 
             dispatchTagsChanges({type:'create', payload: payload });
-            setAllTagsLocal([...allTagsLocal, payload]); // quiza tendria que ordenar.
+            setAllTagsLocal([...allTagsLocal, payload]); 
         }
         const saveChangesHandler = ()=>{
-            //Aca tendria que checkear que todos los 'name' sean distintos... (con la treta de new Set(tagsChanges))
             AppData.applyTagsChanges(tagsChanges).then((r)=>{
                 if(appView.view ==='tagFiltered' && AppData.existTagWithKey(appView.tagFilter) ){
                     setAppView({...appView,tagsEditor:false});
@@ -142,7 +125,6 @@ const TagsEditor=()=>{
                     setNoteList(AppData.getNotes());
                 }
             });
-                
         }
         const closeModal=()=>{
             setModalView({show:false});
@@ -157,67 +139,53 @@ const TagsEditor=()=>{
 
         return(
             <>
-            {appView.sidePanel?
-            <ModalBackground classNames={"modalBackground--tagsEditor"} cancelHandler={()=>{setAppView({...appView,tagsEditor:false});}}/>
-            :null}
+            {appView.sidePanel && <ModalBackground classNames={"modalBackground--tagsEditor"} cancelHandler={()=>{setAppView({...appView,tagsEditor:false});}}/>}
             
             <div className="tagsEditor">
-            {modalView.show
-            ?<Modal 
-                acceptHandler={modalView.acceptHandler}
-                cancelHandler={modalView.cancelHandler}
-                modalText={modalView.modalText}
-                classNames={modalView.classNames}
-            />
-            :null}
-            <div className="viewHeader">
-                <button className="iconButton" onClick={()=>{saveChangesHandler(); setAppView({...appView, tagsEditor:false, sidePanel:true})}} disabled={shouldDisableSaveButton()}>
-                    <img className={`icon ${shouldDisableSaveButton()? 'icon--disabled':''}`} src="/assets/arrow_back.svg" alt="back" />
-                </button>
-                <div className="viewHeader__title"  >Edit tags</div>
+                
+                {modalView.show &&
+                <Modal 
+                    acceptHandler={modalView.acceptHandler}
+                    cancelHandler={modalView.cancelHandler}
+                    modalText={modalView.modalText}
+                    classNames={modalView.classNames}
+                />}
+
+                <div className="viewHeader">
+                    <button className="iconButton" onClick={()=>{saveChangesHandler(); setAppView({...appView, tagsEditor:false, sidePanel:true})}} disabled={shouldDisableSaveButton()}>
+                        <img className={`icon ${shouldDisableSaveButton()? 'icon--disabled':''}`} src="/assets/arrow_back.svg" alt="back" />
+                    </button>
+                    <div className="viewHeader__title">Edit tags</div>
+                </div>
+                <hr/>
+                <TagInputCreator saveTagHandler={createNewTagHandler} allTags={allTagsLocal}/>
+                <hr/>
+                {
+                    allTagsLocal.map((tag)=>{
+                        return(
+                        <div key={tag.key} className="tagsListItem" >
+                            <img className="icon" src="/assets/label.svg" alt="label" />
+
+                            <TagInput tagName={tag.name} tagChangeHandler={(newTagName)=>{updateTagNameHandler(tag,newTagName)} }/>
+
+                            <button className="iconButton" onClick={()=>{
+                                setModalView({
+                                    show:true,
+                                    acceptHandler:()=>{deleteTagHandler(tag)},
+                                    cancelHandler:()=>{closeModal()},
+                                    modalText:`Delete tag: ${tag.name} ?`,
+                                    classNames:'',
+                                });
+                            }}>
+                                <img className="icon " src="/assets/trashCan.svg" alt="trashcan" />
+                            </button> 
+                        </div>
+                    )}
+                    )
+                }
             </div>
-            <hr/>
-            <TagInputCreator saveTagHandler={createNewTagHandler} allTags={allTagsLocal}/>
-            <hr/>
-            {
-                allTagsLocal.map((tag)=>{
-                    return(
-                    <div key={tag.key} className="tagsListItem" >
-                        <img className="icon" src="/assets/label.svg" alt="label" />
-
-                        <TagInput tagName={tag.name} tagChangeHandler={(newTagName)=>{updateTagNameHandler(tag,newTagName)} }/>
-
-                        <button className="iconButton" onClick={()=>{
-                            setModalView({
-                                show:true,
-                                acceptHandler:()=>{deleteTagHandler(tag)},
-                                cancelHandler:()=>{closeModal()},
-                                modalText:`Delete tag: ${tag.name} ?`,
-                                classNames:'',
-                            });
-                        }}>
-                            <img className="icon " src="/assets/trashCan.svg" alt="trashcan" />
-                        </button> 
-                        
-                    </div>
-                )}
-                )
-            }
-        </div>
         </>
     )
 }
 
-const TagsEditorContainer = ()=>{
-    const {appView} = useContext(Context);
-    // return(<>{(appView.view === 'tagsEditor')?<TagsEditor />:null}</>);
-    return(<>{appView.tagsEditor? <TagsEditor/> :null}</>);
-}
-export default TagsEditorContainer;
-
-
-/*
-Consideraciones de tags:
-- los tags no pueden editarse para ser vacios ('') o espacioes en blanco (' ', '     ');
-- los tags no pueden editarse para ser igual a otro tag: tag,tag2 -> tag,tag .
-*/
+export default TagsEditor;

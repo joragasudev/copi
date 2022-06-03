@@ -1,10 +1,7 @@
 import {AppData} from "../data/Data";
 import { createContext,useEffect,useState } from "react";
 import SidePanel from './SidePanel';
-import AddNoteButton from './AddNoteButton';
 import MainScreen from './MainScreen';
-import NoteEditorContainer from "./NoteEditor";
-import TagsEditorContainer from "./TagsEditor";
 import './styles.css';
 
 
@@ -14,9 +11,8 @@ const DefaultProvider = ({children})=>{
     //appView = {view:'default'|'tagFiltered'|'trash' , tagsEditor:true|false, sidePanel:true|false, noteEditor:true|false, tagFilter:int, isSelecting:true|false}
     const [appView,setAppView] = useState({view:'default'});
     const [noteList,setNoteList] = useState(null);
-    const [noteToEdit,setNoteToEdit] = useState(null);
 
-    //init
+    //Init
     useEffect(()=>{
          AppData.connect().then( ()=>{ setNoteList(AppData.getNotes()) }); 
     },[]);
@@ -26,8 +22,6 @@ const DefaultProvider = ({children})=>{
         setAppView : setAppView,
         noteList: noteList,
         setNoteList: setNoteList,
-        noteToEdit:noteToEdit,
-        setNoteToEdit:setNoteToEdit,
     }
 
     return ( 
@@ -37,17 +31,16 @@ const DefaultProvider = ({children})=>{
     );
 }
 
+
 const Copi = () => {
     return(
         <>
             <DefaultProvider>
                 <SidePanel/>
-                <NoteEditorContainer/>
-                <TagsEditorContainer/>
                 <MainScreen/>
             </DefaultProvider>
         </>
     )
-}//fin Copi
+}
 
 export default Copi;

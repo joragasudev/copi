@@ -1,18 +1,18 @@
 import { Context } from "./Copi";
-import { memo, useContext, useEffect, useRef, useState} from "react";
 import React from "react";
+import { memo, useContext, useEffect, useRef, useState} from "react";
 import { toast,ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { DragDropContext } from "react-beautiful-dnd";
-import { Droppable } from "react-beautiful-dnd";
-import { Draggable } from "react-beautiful-dnd";
+import { Droppable,Draggable } from "react-beautiful-dnd";
 import { AppData } from "../data/Data";
 import TopBar from "./TopBar";
 import AddNoteButton from "./AddNoteButton";
+import NoteEditor from "./NoteEditor";
 
 const NoteCard = memo((props) =>{
-    const {isSelected,note,selectNoteHandler} = props;
-    const {setNoteToEdit,appView,setAppView} = useContext(Context);
+    const {setNoteToEdit,isSelected,note,selectNoteHandler} = props;
+    const {appView,setAppView} = useContext(Context);
     const noteCardRef = useRef(null);
 
     const clickHandler = (event) => {
@@ -69,7 +69,7 @@ const NoteCard = memo((props) =>{
 });
 
 const ListContent = memo((props) => {
-    const {noteList,isDragDisabled,selectedNotesKeys,setSelectedNotesKeys} = props;
+    const {setNoteToEdit,noteList,isDragDisabled,selectedNotesKeys,setSelectedNotesKeys} = props;
 
     const selectANote = (noteKey)=>{//(toggle)
         selectedNotesKeys.includes(noteKey)
@@ -91,11 +91,9 @@ const ListContent = memo((props) => {
              {...provided.draggableProps}
              {...provided.dragHandleProps}
              style={{...provided.draggableProps.style,
-             border : snapshot.isDragging?
-             "1px solid transparent" : "1px solid transparent" , 
-             boxShadow: snapshot.isDragging?
-             "0 0 .4rem #666" : "none"}}>
-                <NoteCard isSelected={selectedNotesKeys.includes(note.key)} note={note} selectNoteHandler={selectANote}/>
+             boxShadow: snapshot.isDragging? "0 0 .4rem #666" : "none" ,
+             }}>
+                <NoteCard isSelected={selectedNotesKeys.includes(note.key)} note={note} selectNoteHandler={selectANote} setNoteToEdit={setNoteToEdit}/>
             </div>
         )}
     </Draggable>
@@ -112,6 +110,7 @@ const ListContent = memo((props) => {
 const MainScreen = () =>{
     const [selectedNotesKeys,setSelectedNotesKeys] = useState([]);
     const {noteList,setNoteList,appView,setAppView} = useContext(Context);
+    const [noteToEdit,setNoteToEdit] = useState(null);
     
     const sendNotesToTrashHandler = ()=>{
         AppData.sendNotesToTrash(selectedNotesKeys).then((notesList)=>{
@@ -145,28 +144,26 @@ const MainScreen = () =>{
         setSelectedNotesKeys([]);
     }
     const listTitle = ()=>{
+        if (!noteList.length && appView.view === 'tagFiltered')
+            return (`TAG: ${AppData.getTagName(appView.tagFilter)}, (NO NOTES).`);
+        if (!noteList.length && appView.view === 'trash')
+            return 'TRASHCAN, (NO NOTES).'
         if (!noteList.length)
-            return 'NO NOTES'
+            return 'NO NOTES.'
         if (appView.view === 'default')
-            return 'ALL NOTES'
+            return 'ALL NOTES:'
         if (appView.view === 'trash')
-            return 'TRASHCAN'
+            return 'TRASHCAN:'
         if (appView.view === 'tagFiltered')
-            return ('TAG: '+AppData.getTagName(appView.tagFilter))
+            return (`TAG: ${AppData.getTagName(appView.tagFilter)}`);
     }
-
-    // RETURN
-    if (!noteList.length)
-        return (
-            <div className="mainScreen">
-                <TopBar sendNotesToTrashHandler={sendNotesToTrashHandler} clearSelection={clearSelection}/>
-                <div className="listTitle">{listTitle()}</div>
-                <AddNoteButton/>
-            </div>
-        );
 
     return(
         <div className="mainScreen">
+
+        {/* Note Editor */}
+        <>{appView.noteEditor?<NoteEditor noteToEdit={noteToEdit} />:null}</>
+
         {/* TopBar (SideMenu button, search bar, and select notes button) */}
         <TopBar 
             sendNotesToTrashHandler={sendNotesToTrashHandler}
@@ -181,6 +178,7 @@ const MainScreen = () =>{
         <div className="listTitle ellipsis">{listTitle()}</div>
 
         {/* Drag and drop Notes List */}
+        { (noteList.length>0) &&
         <DragDropContext onDragEnd={(dragEndObject)=>{ //DRAG HANDLER
             if (dragEndObject.destination != null){
                 const sourceKey = noteList[dragEndObject.source.index].key;
@@ -198,19 +196,19 @@ const MainScreen = () =>{
                             isDragDisabled={appView.view!=='default' && appView.view!=='tagFiltered'}
                             selectedNotesKeys = {selectedNotesKeys}
                             setSelectedNotesKeys = {setSelectedNotesKeys}
+                            setNoteToEdit={setNoteToEdit}
                         />
                         {provided.placeholder}
                     </div>
                 )}
             </Droppable>
         </DragDropContext>
+        }
 
         {/* new Note button (+) */}
-        <AddNoteButton/>
+        <AddNoteButton setNoteToEdit={setNoteToEdit}/>
         </div>
     )
 }
-
-
 
 export default MainScreen;
