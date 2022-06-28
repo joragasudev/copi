@@ -1,5 +1,5 @@
 import { Context } from "./Copi";
-import { useContext,useEffect,useState } from "react";
+import { useContext,useState } from "react";
 import { AppData } from "../data/Data";
 import Modal from "./Modal";
 
