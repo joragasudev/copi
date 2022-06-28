@@ -15,7 +15,7 @@ const NoteTagsEditor = memo((props)=>{
         const newFilteredTags = AppData.allTagsCache.filter((tag)=>{
             const termNormalized = term.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
             const tagNormalized = tag.name.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-            return (tagNormalized.startsWith(termNormalized));
+            return (tagNormalized.includes(termNormalized));
         });
         return setFilteredTagsAvailable(newFilteredTags);
     }

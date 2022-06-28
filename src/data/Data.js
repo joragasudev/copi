@@ -38,7 +38,7 @@ class Data{
         this.allTagsCache = []; 
         this.notesOrderCache = [];
         this.notesOrderByTagCache = [];
-        this.MAX_TEXT_LENGTH = 10;
+        this.MAX_TEXT_LENGTH = 20;
 
         this.fuseOptions = {
             includeScore: true,
