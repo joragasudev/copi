@@ -1,9 +1,15 @@
 # copi
-A note app where you can copy notes with a single tap.
+A notetaking app where you can copy notes to your clipboard with a single tap.
+<br>
+Try it HERE !
+<br>
 You can install and use this app offline!. Search for "install" or "add to desktop" in your browser.
+<br>
 Made for learning ReactJS.
 
-![Main Screen](https://github.com/joragasudev/copi/blob/master/screenshots/mainScreen_(iPhone%206_7_8)400w.png  | width=100)
-![Note Copied](https://github.com/joragasudev/copi/blob/master/screenshots/Note%20Copied_(iPhone%206_7_8)400w.png?raw=true)
-![Note Editor](https://github.com/joragasudev/copi/blob/master/screenshots/NoteEditor(iPhone%206_7_8)400w.png?raw=true)
-![Side Menu](https://github.com/joragasudev/copi/blob/master/screenshots/SideMenu_(iPhone%206_7_8)400w.png?raw=true)
+<div style="display:flex">
+<img src="https://github.com/joragasudev/copi/blob/master/screenshots/mainScreen_(iPhone%206_7_8)400w.png" width="200">
+<img src="https://github.com/joragasudev/copi/blob/master/screenshots/Note%20Copied_(iPhone%206_7_8)400w.png" width="200">
+<img src="https://github.com/joragasudev/copi/blob/master/screenshots/NoteEditor(iPhone%206_7_8)400w.png" width="200">
+<img src="https://github.com/joragasudev/copi/blob/master/screenshots/SideMenu_(iPhone%206_7_8)400w.png" width="200">
+</div>
