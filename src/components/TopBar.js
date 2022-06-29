@@ -60,7 +60,7 @@ const TopBar = (props) =>{
 
             {/* SidePanel button */}
             <button className="iconButton" disabled={appView.isSelecting} onClick={()=>setAppView( {...appView,sidePanel:true} )}>
-                <img className={`icon ${appView.isSelecting?'icon--disabled':''}`} src="/assets/hamburger.svg" alt="SP" />
+                <img className={`icon ${appView.isSelecting?'icon--disabled':''}`} src="../assets/hamburger.svg" alt="SP" />
             </button>
 
             {/* Middle searchBar and buttons */}
