@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/copi/static/css/main.26e91cd3.css",
+    "main.js": "/copi/static/js/main.a2275238.js",
+    "static/js/377.ce81cd8d.chunk.js": "/copi/static/js/377.ce81cd8d.chunk.js",
+    "index.html": "/copi/index.html",
+    "main.26e91cd3.css.map": "/copi/static/css/main.26e91cd3.css.map",
+    "main.a2275238.js.map": "/copi/static/js/main.a2275238.js.map",
+    "377.ce81cd8d.chunk.js.map": "/copi/static/js/377.ce81cd8d.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.26e91cd3.css",
+    "static/js/main.a2275238.js"
+  ]
+}
