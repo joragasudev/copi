@@ -12,7 +12,7 @@ const TagList=(props)=>{
         allTags.map((tag)=>{
             return(
                 <div key={tag.key} className="sidePanelTagContainer" onClick={()=>{clickTagHandler(tag.key)}}>
-                    <img className="icon" src="/assets/label.svg" alt="label" />
+                    <img className="icon" src="assets/label.svg" alt="label" />
                     <div className="ellipsis tagFilterName" >{tag.name}</div>
                 </div>
             )}
@@ -40,7 +40,7 @@ const SidePanel = ()=>{
             <div className={`sidePanel ${appView.sidePanel?'sidePanel--show' : ''}`}>
                 <div className="sidePanelHeaders sidePanelHeaders--appTitle" >COPI</div>
                 <div className="sidePanelTagContainer" onClick={()=>{setAppView({...appView,view:'default',sidePanel:false}); setNoteList(AppData.getNotes());}}>
-                    <img className="icon" src="/assets/note.svg" alt="allNotes" />
+                    <img className="icon" src="assets/note.svg" alt="allNotes" />
                     <div className="sidePanelHeaders">NOTES</div>
                 </div> 
                 <hr/>
@@ -51,16 +51,16 @@ const SidePanel = ()=>{
                 <TagList clickTagHandler={clickTagHandler}/>
                 <hr/>
                 <div className="sidePanelTagContainer" onClick={()=>{setAppView({...appView,view:'trash',sidePanel:false}); setNoteList(AppData.getTrashedNotes());}}>
-                    <img className="icon" src="/assets/trashCan.svg" alt="deleted" />
+                    <img className="icon" src="assets/trashCan.svg" alt="deleted" />
                     <div className="sidePanelHeaders">DELETED</div>
                 </div>    
                 <div className="sidePanelTagContainer" onClick={()=>{setAppView({...appView,sidePanel:false, helpModal:true})}}>
-                    <img className="icon" src="/assets/help.svg" alt="help" />
+                    <img className="icon" src="assets/help.svg" alt="help" />
                     <div className="sidePanelHeaders">HELP</div>
                 </div>  
                 {/* PWA expermental installation. set chrome://flags/#bypass-app-banner-engagement-checks to show the banner multiple times. */}
                 {/* <div className="sidePanelTagContainer" onClick={()=>{AppData.promptInstallApp()} }>
-                    <img className="icon" src={AppData.isMobile()? "/assets/install_mobile.svg" : "/assets/install_desktop.svg"} alt="install" />
+                    <img className="icon" src={AppData.isMobile()? "assets/install_mobile.svg" : "assets/install_desktop.svg"} alt="install" />
                     <div className="sidePanelHeaders">INSTALL</div>
                 </div>  */}
             </div>

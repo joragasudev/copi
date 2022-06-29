@@ -10,7 +10,7 @@ const AddNoteButton = (props)=>{
              onClick={()=>{setNoteToEdit(null);setAppView({...appView, noteEditor:true,sidePanel:false,tagsEditor:false})}}
              disable={appView.noteEditor?'true':'false'}   
              >
-                <img src={"assets/add.svg"} alt="addNote" />
+                <img src="assets/add.svg" alt="addNote" />
             </button>
     )
 }

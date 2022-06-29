@@ -43,14 +43,14 @@ const TagBubbles = (props)=>{
             AppData.getTagsByIds(noteTags).map((tag)=>
             <div className="tagBubbleContainer" key={tag.key}>
              <div onClick={()=>{setShowTagEditor(true)}} className="tagBubbleContainer__tagBubble" > 
-                <img className={`icon`} src="/assets/label.svg" alt="tag" />
+                <img className={`icon`} src="assets/label.svg" alt="tag" />
                 <div className="ellipsis">{tag.name}</div> 
              </div>
              </div>
              )
              :<div className="tagBubbleContainer"> 
                 <div onClick={()=>{setShowTagEditor(true)}} className="tagBubbleContainer__tagBubble"> 
-                <img className={`icon`} src="/assets/label.svg" alt="tag" />
+                <img className={`icon`} src="assets/label.svg" alt="tag" />
                 <div>Tags</div> 
                 </div>  
               </div>    
@@ -115,7 +115,7 @@ const NoteEditor = (props)=>{
                             setAppView({...appView,noteEditor:false,sidePanel:false,tagsEditor:false});
                             }
                         }}>
-                        <img className={`icon `} src="/assets/arrow_back.svg" alt="save" /> 
+                        <img className={`icon `} src="assets/arrow_back.svg" alt="save" /> 
                     </button>
                 </div>
 

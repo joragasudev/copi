@@ -60,7 +60,7 @@ const TopBar = (props) =>{
 
             {/* SidePanel button */}
             <button className="iconButton" disabled={appView.isSelecting} onClick={()=>setAppView( {...appView,sidePanel:true} )}>
-                <img className={`icon ${appView.isSelecting?'icon--disabled':''}`} src="../assets/hamburger.svg" alt="SP" />
+                <img className={`icon ${appView.isSelecting?'icon--disabled':''}`} src="assets/hamburger.svg" alt="SP" />
             </button>
 
             {/* Middle searchBar and buttons */}
@@ -70,7 +70,7 @@ const TopBar = (props) =>{
               
               {/* magGlass */}
               <button className="iconButton" onClick={()=>{document.getElementById("searchInput").focus();}}>
-                <img className="icon " src={"assets/search.svg"} alt="magGlass" />
+                <img className="icon " src="assets/search.svg" alt="magGlass" />
               </button>
             
               {/* Button: Select notes / Cancel selection */}
@@ -83,7 +83,7 @@ const TopBar = (props) =>{
                     }
                     }}>
 
-                <img className={`icon ${noteList.length===0? 'icon--disabled' : ''}`} src={appView.isSelecting? "/assets/close.svg":"/assets/checklist_select.svg"} alt="SP" />
+                <img className={`icon ${noteList.length===0? 'icon--disabled' : ''}`} src={appView.isSelecting? "assets/close.svg":"assets/checklist_select.svg"} alt="SP" />
               </button>
 
               {/* Restore */}
@@ -100,7 +100,7 @@ const TopBar = (props) =>{
                         ${disableTrashButton?'icon--disabled':''} 
                         ${(appView.view!=='trash' || !appView.isSelecting)?'icon--hide':''}
                         `} 
-                    src="/assets/restore_from_trash.svg"
+                    src="assets/restore_from_trash.svg"
                     alt="SP"
                     />
               </button>
@@ -109,7 +109,7 @@ const TopBar = (props) =>{
             {/* Delete. invokes the confimation Modal*/} 
             <button className="iconButton" disabled={disableTrashButton} onClick={()=>{setModalObject(trashCanModalBehavior())}}>
                 <img className={`icon ${disableTrashButton?'icon--disabled':''} ${!appView.isSelecting?'icon--hide':''}`} 
-                    src={appView.view==='trash'?"/assets/delete_forever.svg":"/assets/trashCan.svg"} 
+                    src={appView.view==='trash'?"assets/delete_forever.svg":"assets/trashCan.svg"} 
                     alt="SP"
                 />
             </button>

@@ -47,7 +47,7 @@ const NoteTagsEditor = memo((props)=>{
             {/* Title and back button (<-) */}
             <div className="viewHeader">
                 <button className="iconButton" onClick={()=>{saveButtonHandler(); showTagsEditorHandler(false);}}  >
-                    <img className={`icon `} src="/assets/arrow_back.svg" alt="back" />
+                    <img className={`icon `} src="assets/arrow_back.svg" alt="back" />
                 </button>
                 <div className="viewHeader__title" >Edit note tags</div>
             </div>
@@ -70,7 +70,7 @@ const CheckBoxTag = (props)=>{
     return (
     <div className="noteTagContainer">
 
-        <img className="icon" src="/assets/label.svg" alt="label" />
+        <img className="icon" src="assets/label.svg" alt="label" />
 
         <div className="ellipsis flexGrow_high tagFilterName">{tagName}</div>
 
@@ -102,10 +102,10 @@ const TagFilter = (props)=>{
                     setTerm(e.target.value);
                 }}/>
                 <button className="iconButton" onClick={()=>{document.getElementById("searchTags").focus();}}>
-                    <img className="icon " src={"assets/search.svg"} alt="magGlass" />
+                    <img className="icon " src="assets/search.svg" alt="magGlass" />
                 </button>
                 <button className="iconButton" onClick={()=>{addTagHandler(term)}} disabled={!showCreateTagButton}> 
-                    <img className= {`icon ${!showCreateTagButton?'icon--disabled':''}`} src="/assets/add.svg" alt="addtag" />
+                    <img className= {`icon ${!showCreateTagButton?'icon--disabled':''}`} src="assets/add.svg" alt="addtag" />
                 </button>
             </div>
         </>

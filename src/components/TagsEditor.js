@@ -31,7 +31,7 @@ const TagInputCreator = (props)=>{
                 setTerm(e.target.value);
             }}/>
             <button className="iconButton" onClick={()=>{saveTagHandler(term)}} disabled={buttonIsDisabled}> 
-                <img className= {`icon ${buttonIsDisabled?'icon--disabled':''}`} src="/assets/add.svg" alt="addtag" />
+                <img className= {`icon ${buttonIsDisabled?'icon--disabled':''}`} src="assets/add.svg" alt="addtag" />
             </button>
         </div>
     )
@@ -153,7 +153,7 @@ const TagsEditor=()=>{
 
                 <div className="viewHeader">
                     <button className="iconButton" onClick={()=>{saveChangesHandler(); setAppView({...appView, tagsEditor:false, sidePanel:true})}} disabled={shouldDisableSaveButton()}>
-                        <img className={`icon ${shouldDisableSaveButton()? 'icon--disabled':''}`} src="/assets/arrow_back.svg" alt="back" />
+                        <img className={`icon ${shouldDisableSaveButton()? 'icon--disabled':''}`} src="assets/arrow_back.svg" alt="back" />
                     </button>
                     <div className="viewHeader__title">Edit tags</div>
                 </div>
@@ -164,7 +164,7 @@ const TagsEditor=()=>{
                     allTagsLocal.map((tag)=>{
                         return(
                         <div key={tag.key} className="tagsListItem" >
-                            <img className="icon" src="/assets/label.svg" alt="label" />
+                            <img className="icon" src="assets/label.svg" alt="label" />
 
                             <TagInput tagName={tag.name} tagChangeHandler={(newTagName)=>{updateTagNameHandler(tag,newTagName)} }/>
 
@@ -177,7 +177,7 @@ const TagsEditor=()=>{
                                     classNames:'',
                                 });
                             }}>
-                                <img className="icon " src="/assets/trashCan.svg" alt="trashcan" />
+                                <img className="icon " src="assets/trashCan.svg" alt="trashcan" />
                             </button> 
                         </div>
                     )}
