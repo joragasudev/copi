@@ -1,7 +1,7 @@
 # copi
 A notetaking app where you can copy notes to your clipboard with a single tap.
 <br>
-Try it HERE !
+Try it [HERE!](https://joragasudev.github.io/copi/).
 <br>
 You can install and use this app offline!. Search for "install" or "add to desktop" in your browser.
 <br>
